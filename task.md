@@ -52,3 +52,7 @@ Phase 6: Core Development
 - [x] Implement Cointegration Stationarity module.
 - [x] Implement Hampel Filter data scrubbing module.
 - [x] Implement Order Book Toxicity (OBI) detection module.
+
+Phase 7: Operations & Trading Desk
+- [x] Initialize Prisma ORM matching the immutable PostgreSQL ledger.
+- [ ] Scaffold Next.js frontend with Shadcn-like structure for the dashboard.

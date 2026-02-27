@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Enum Types for Strict State Enforcement
+enum OrderStatus {
+  PENDING_SUBMIT
+  ACKNOWLEDGED
+  PARTIALLY_FILLED
+  FILLED
+  CANCELED
+  UNKNOWN
+  FAILED_TO_SUBMIT
+
+  @@map("order_status")
+}
+
+enum OrderSide {
+  BUY
+  SELL
+
+  @@map("order_side")
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+  VP
+  TWAP
+
+  @@map("order_type")
+}
+
+enum UserRole {
+  ADMIN
+  TRADER
+  RISK_MANAGER
+  VIEWER
+
+  @@map("user_role")
+}
+
+// 2. Internal Operations & RBAC
+model User {
+  userId       String    @id @default(dbgenerated("gen_random_uuid()")) @map("user_id") @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         UserRole  @default(VIEWER)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  lastLogin    DateTime? @map("last_login") @db.Timestamptz
+
+  auditLogs       AuditLog[]
+  executionOrders ExecutionOrder[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  logId          String    @id @default(dbgenerated("gen_random_uuid()")) @map("log_id") @db.Uuid
+  userId         String?   @map("user_id") @db.Uuid
+  actionType     String    @map("action_type") @db.VarChar(100)
+  targetResource String?   @map("target_resource") @db.VarChar(255)
+  oldValue       Json?     @map("old_value")
+  newValue       Json?     @map("new_value")
+  timestamp      DateTime? @default(now()) @db.Timestamptz
+  ipAddress      String?   @map("ip_address") @db.Inet
+
+  user User? @relation(fields: [userId], references: [userId])
+
+  @@index([timestamp], name: "idx_audit_logs_timestamp")
+  @@map("audit_logs")
+}
+
+// 3. The Logic Engine Outputs (Signals)
+model MathematicalSignal {
+  signalId         String    @id @default(dbgenerated("gen_random_uuid()")) @map("signal_id") @db.Uuid
+  modelName        String    @map("model_name") @db.VarChar(100)
+  targetAsset      String    @map("target_asset") @db.VarChar(50)
+  direction        OrderSide
+  zScore           Decimal?  @map("z_score") @db.Decimal(10, 4)
+  halfLifeMinutes  Decimal?  @map("half_life_minutes") @db.Decimal(10, 2)
+  mlWinProbability Decimal?  @map("ml_win_probability") @db.Decimal(5, 4)
+  suggestedSizeUsd Decimal?  @map("suggested_size_usd") @db.Decimal(15, 2)
+  generatedAt      DateTime? @default(now()) @map("generated_at") @db.Timestamptz
+  isExecuted       Boolean?  @default(false) @map("is_executed")
+
+  executionOrders ExecutionOrder[]
+
+  @@index([modelName, generatedAt], name: "idx_signals_model_name")
+  @@map("mathematical_signals")
+}
+
+// 4. The Execution State Machine (The Reconciliation Ledger)
+model ExecutionOrder {
+  clientOid         String    @id @default(dbgenerated("gen_random_uuid()")) @map("client_oid") @db.Uuid
+  signalId          String?   @map("signal_id") @db.Uuid
+  userId            String?   @map("user_id") @db.Uuid
+  exchange          String    @db.VarChar(50)
+  symbol            String    @db.VarChar(50)
+  side              OrderSide
+  type              OrderType
+  quantityRequested Decimal   @map("quantity_requested") @db.Decimal(20, 8)
+  priceLimit        Decimal?  @map("price_limit") @db.Decimal(20, 8)
+
+  status           OrderStatus @default(PENDING_SUBMIT)
+  exchangeOrderId  String?     @map("exchange_order_id") @db.VarChar(255)
+  quantityFilled   Decimal?    @default(0) @map("quantity_filled") @db.Decimal(20, 8)
+  averageFillPrice Decimal?    @map("average_fill_price") @db.Decimal(20, 8)
+  feeIncurred      Decimal?    @map("fee_incurred") @db.Decimal(20, 8)
+  feeAsset         String?     @map("fee_asset") @db.VarChar(10)
+
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  signal MathematicalSignal? @relation(fields: [signalId], references: [signalId])
+  user   User?               @relation(fields: [userId], references: [userId])
+
+  @@index([status], name: "idx_execution_orders_status")
+  @@map("execution_orders")
+}
