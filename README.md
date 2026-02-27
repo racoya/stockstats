@@ -22,3 +22,9 @@ The architecture and strategic goals of the project are documented in the `docs/
 
 ## Tracking Progress
 Project progress and upcoming tasks are tracked in the root [`task.md`](task.md) file.
+
+**Current Status (Phase 8: Microservice Integration):**
+The mathematical and strategic theory has been fully transitioned into physical code. The monorepo is scaffolded into three distinct microservices running via Docker Compose:
+- **`backend/` (Python core)**: Houses the quantitative math engines (GARCH, Cointegration, HMM) and websocket ingestion.
+- **`operations/` (Node.js API)**: Houses the Prisma ORM mapping to the PostgreSQL immutable ledger and State Machine.
+- **`frontend/` (Next.js)**: Houses the React Trading Desk dashboard visualizing the quant models in real-time.

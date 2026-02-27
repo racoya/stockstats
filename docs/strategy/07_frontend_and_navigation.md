@@ -13,11 +13,11 @@ The frontend will implement a strict RBAC system to ensure users only see and in
 Based on industry standards for secure internal tools, a unified 404 (Not Found) or 403 (Unauthorized) response is insufficient. The system must degrade gracefully and contextually.
 
 *   **The Problem:** Generic 404 pages can leak system structure to unauthorized users or trap users in dead-ends during fast-moving market events.
-*   **The Solution - Contextual Error Boundaries:**
-    *   **Admin 404:** Displays the error but provides quick-action links to system diagnostics, recent backend error logs, and user activity monitoring.
-    *   **Trader 404:** Streamlined error message that immediately provides a prominent "Return to Active Portfolio" or "Execution Terminal" button, minimizing time lost during active trading sessions.
-    *   **Analyst 404:** Redirects or offers links back to the primary research dashboard, data querying interface, and historical backtesting suites.
-*   **Security Posture:** Unauthorized access attempts (403 masquerading as 404) will not reveal whether a specific Admin URL truly exists, adhering to "security through obscurity" best practices for internal tools.
+*   **The Solution - Contextual Error Boundaries (Updated for Phase 7 Layout):**
+    *   **Admin 404 (Head Trader / Risk Mgr):** Displays the error but provides quick-action links to system diagnostics, recent backend error logs, and the **[Execution Ledger]**. They also receive a prominent link to the **[Risk Parameters]** module to ensure global VaR limits aren't breached.
+    *   **Trader 404:** Streamlined error message that immediately provides a prominent "Return to **[Command Center]**" or "**[Cointegration Matrices]**" button, minimizing time lost during active trading sessions.
+    *   **Analyst/Viewer 404:** Redirects or offers links back to the primary **[Command Center]** read-only dashboard or historical data querying interfaces.
+*   **Security Posture:** Unauthorized access attempts (403 masquerading as 404) will not reveal whether a specific Admin URL truly exists, adhering to "security through obscurity" best practices for internal tools. As we add new Next.js routes, this 404 boundary component will dynamically update its suggested links based on the user's validated Prisma `UserRole`.
 
 ## 4. User Experience (UX) & Interface Layout
 The UI must prioritize speed, data density, and infallible action-taking during high-stress market environments. The design language will be dark-mode native (to reduce eye strain) with highly contrasting typography.

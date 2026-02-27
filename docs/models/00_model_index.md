@@ -7,9 +7,9 @@ The models are segmented into four distinct stages of the trade lifecycle: **Sig
 
 ## Phase 1: Signal Generation (The Edge)
 These models are responsible for discovering pure structural and temporal anomalies in the market data.
-*   **[01. Dynamic Volatility (GARCH)](01_garch_volatility.md):** Replaces static Standard Deviation. Uses Generalized Autoregressive Conditional Heteroskedasticity to instantly expand trading bands during market shocks, preventing false mean-reversion entries.
-*   **[02. Cointegration & StatArb](02_cointegration_arb.md):** Replaces Pearson correlation. Utilizes Augmented Dickey-Fuller (ADF) tests to mathematically prove the absolute spread between two assets is stationary (reliably mean-reverting) before authorizing pairs trading.
-*   **[03. Regime Detection (HMM)](03_hmm_regime_detection.md):** Uses Gaussian Hidden Markov Models and transition probability matrices to autonomously flag if the macro market is "Choppy" (authorize mean-reversion) or "Trending" (hard veto mean-reversion).
+*   **[01. Dynamic Volatility (GARCH)](01_garch_volatility.md)** `[IMPLEMENTED]`: Replaces static Standard Deviation. Uses Generalized Autoregressive Conditional Heteroskedasticity to instantly expand trading bands during market shocks, preventing false mean-reversion entries.
+*   **[02. Cointegration & StatArb](02_cointegration_arb.md)** `[IMPLEMENTED]`: Replaces Pearson correlation. Utilizes Augmented Dickey-Fuller (ADF) tests to mathematically prove the absolute spread between two assets is stationary (reliably mean-reverting) before authorizing pairs trading.
+*   **[03. Regime Detection (HMM)](03_hmm_regime_detection.md)** `[IMPLEMENTED]`: Uses Gaussian Hidden Markov Models and transition probability matrices to autonomously flag if the macro market is "Choppy" (authorize mean-reversion) or "Trending" (hard veto mean-reversion).
 
 ## Phase 2: Signal Optimization (The Modifiers)
 Once a signal is generated, these models dynamically optimize its entry parameters to eliminate lag and predict its real-world viability.
@@ -31,6 +31,6 @@ These models serve as the final confirmation overlays and stress-testers to ensu
 
 ## Phase 5: Real-World Fail-Safes (Microstructure Defenses)
 These protocols protect the mathematically perfect logic engines from the chaotic reality of broken exchange APIs and predatory high-frequency market makers.
-*   **[13. Order State Machine & Reconciliation](13_state_machine_reconciliation.md):** Utilizes deterministic UUIDs (`clientOid`) to force the Execution Engine to safely halt, query, and resolve orphaned "Zombie" trades during Exchange API timeouts/glitches without duplicating risk.
-*   **[14. Data Scrubbing & Hampel Filters](14_data_scrubbing_hampel.md):** The sterilization gate. Uses rolling Median Absolute Deviation (MAD) to algorithmically scrub extreme data errors ("rogue ticks") broadcast by exchanges before they can poison the downstream GARCH or OLS arrays.
-*   **[15. Order Book Imbalance (OBI) & Toxicity](15_orderbook_toxicity_obi.md):** Detects Adverse Selection and L2 "Spoofing" by predatory HFTs. Calculates the ratio of limit bid/ask pressure to dynamically pause the VWAP Execution Slicer until the toxic flow subsides.
+*   **[13. Order State Machine & Reconciliation](13_state_machine_reconciliation.md)** `[IMPLEMENTED]`: Utilizes deterministic UUIDs (`clientOid`) to force the Execution Engine to safely halt, query, and resolve orphaned "Zombie" trades during Exchange API timeouts/glitches without duplicating risk.
+*   **[14. Data Scrubbing & Hampel Filters](14_data_scrubbing_hampel.md)** `[IMPLEMENTED]`: The sterilization gate. Uses rolling Median Absolute Deviation (MAD) to algorithmically scrub extreme data errors ("rogue ticks") broadcast by exchanges before they can poison the downstream GARCH or OLS arrays.
+*   **[15. Order Book Imbalance (OBI) & Toxicity](15_orderbook_toxicity_obi.md)** `[IMPLEMENTED]`: Detects Adverse Selection and L2 "Spoofing" by predatory HFTs. Calculates the ratio of limit bid/ask pressure to dynamically pause the VWAP Execution Slicer until the toxic flow subsides.
