@@ -3,6 +3,11 @@
 ## 1. Objective
 To formalize the mathematical principles, statistical boundaries, and execution logic that govern the $R > 0$ intelligence mandate. The system uses strict formulas, not discretionary feelings.
 
+> **Note:** For specific Python implementation logic, equations, and code architecture of the core algorithms below, refer to the deep-dive whitepapers in the [`models/` directory](models/):
+> *   [01_garch_volatility.md](models/01_garch_volatility.md)
+> *   [02_cointegration_arb.md](models/02_cointegration_arb.md)
+> *   [03_hmm_regime_detection.md](models/03_hmm_regime_detection.md)
+
 ## 2. Dynamic Volatility & Mean Reversion
 The core engine identifies statistical anomalies (deviation from the mean), but must dynamically adjust to changing market environments to prevent entering trades against structural macro shifts.
 
