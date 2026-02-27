@@ -34,7 +34,7 @@ To build this end-to-end proprietary solution, we need to design several distinc
     *   **Manual Overrides:** The ability for authorized traders to manually intervene, adjust algorithmic parameters on the fly, or liquidate positions during Black Swan events.
 
 ## 4. Next Steps in the Conceptualization Phase
-To proceed systematically, we will break down the conceptualization into the following dedicated strategy documents within the `strategy/` directory:
+To proceed systematically, we will break down the conceptualization into the following dedicated strategy documents within the `` directory:
 1.  **`02_data_architecture.md`**: Defining how we get, store, and clean market data.
 2.  **`03_mathematical_models.md`**: Deep dive into the formulas (regression, copulas, position sizing).
 3.  **`04_execution_and_risk.md`**: Defining how the system interacts with brokers and protects capital.
