@@ -19,6 +19,9 @@ Phase 2: Architecture & Logic Definition
 - [x] Deep Dive: `models/07_kalman_filters.md` (Dynamic Hedge Ratios)
 - [x] Deep Dive: `models/08_ornstein_uhlenbeck_halflife.md` (Mean-Reversion Speed)
 - [x] Deep Dive: `models/09_fractional_differencing.md` (Memory Preservation for ML)
+- [x] Deep Dive: `models/10_machine_learning_overlays.md` (Meta-Labeling Confirmation)
+- [x] Deep Dive: `models/11_backtesting_rigor_and_bias.md` (Deflated Sharpe & Point-in-Time)
+- [x] Deep Dive: `models/12_value_at_risk_var.md` (Covariance Matrices & Kill Switch)
 - [x] Review and improve R>0 Expectancy logic based on quantitative standards
 
 Phase 3: Execution & Operations

@@ -13,6 +13,9 @@ To formalize the mathematical principles, statistical boundaries, and execution 
 > *   [07_kalman_filters.md](models/07_kalman_filters.md)
 > *   [08_ornstein_uhlenbeck_halflife.md](models/08_ornstein_uhlenbeck_halflife.md)
 > *   [09_fractional_differencing.md](models/09_fractional_differencing.md)
+> *   [10_machine_learning_overlays.md](models/10_machine_learning_overlays.md)
+> *   [11_backtesting_rigor_and_bias.md](models/11_backtesting_rigor_and_bias.md)
+> *   [12_value_at_risk_var.md](models/12_value_at_risk_var.md)
 
 ## 2. Dynamic Volatility & Mean Reversion
 The core engine identifies statistical anomalies (deviation from the mean), but must dynamically adjust to changing market environments to prevent entering trades against structural macro shifts.
