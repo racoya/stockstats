@@ -25,6 +25,34 @@ $$ \sigma_t^2 = \omega + \alpha \epsilon_{t-1}^2 + \beta \sigma_{t-1}^2 $$
 
 *Note: For the model to be stable and mean-reverting over the long term, $\alpha + \beta$ must be $< 1$.*
 
+```mermaid
+graph TD
+    classDef formula fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef logic fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef veto fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Tick("New Market Tick (t)")
+    Ret["Calculate Return (R_t)"]
+    Res["Calculate Shock/Residual (ε_t)"]
+    
+    subgraph GARCH Model Fitting
+        MLE["Maximum Likelihood Estimation\n(Rolling Window)"]:::formula
+        Update["Update ω, α, β"]:::formula
+    end
+    
+    Forecast["Forecast Conditional Volatility\n(σ_t)"]:::logic
+    Bands["Dynamically Expand/Contract\nTrading Bands"]:::logic
+    
+    Tick --> Ret --> Res
+    Res --> MLE --> Update --> Forecast --> Bands
+    
+    Eval{"Is Price < Lower Band\nAND ε_t High?"}
+    Eval -- "Yes (Flash Crash)" --> Veto["Veto Trade\n(Wait for Volatility to Subside)"]:::veto
+    Eval -- "No (Pure Reversion)" --> Auth["Authorize Limit Order"]:::logic
+    
+    Bands --> Eval
+```
+
 ## 3. Implementation in STOCKSTATS (The Logic Tree)
 
 When the Quantitative Engine runs in real-time, it does not use static standard deviations for the Mean Reversion bands. It continuously fits the GARCH(1,1) model over the rolling tick data.

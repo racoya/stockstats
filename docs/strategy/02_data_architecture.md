@@ -5,6 +5,42 @@ To design a secure, fast, and highly reliable data ingestion and storage pipelin
 
 ## 2. External Data Types & Market Sourcing
 
+```mermaid
+graph TD
+    classDef stream fill:#2563eb,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef filter fill:#dc2626,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef storage fill:#059669,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef engine fill:#7c3aed,stroke:#fff,stroke-width:2px,color:#fff;
+
+    A("Live Exchange WebSockets\n(Binance, Kraken)"):::stream
+    
+    subgraph Data Normalization & Defense
+        B("L1 Ticks (Trades)")
+        C("L2 Order Book (Depth)")
+        
+        MAD["Hampel Filter\n(Scrub Rogue Ticks)"]:::filter
+        OBI["Toxicity Detector\n(Assess HFT Spoofing)"]:::filter
+    end
+
+    subgraph Storage Layer
+        Redis[("Redis In-Memory\n(Rolling N-Minute Array)")]:::storage
+        TSDB[("TimescaleDB\n(Immutable Tick History)")]:::storage
+    end
+
+    Logic("Quantitative Logic Engine\n(GARCH, Cointegration, HMM)"):::engine
+
+    A --> B
+    A --> C
+    
+    B --> MAD
+    C --> OBI
+    
+    MAD -- "Clean Ticks" --> Redis
+    MAD -- "Clean Ticks" --> TSDB
+    
+    Redis -- "Microsecond Read" --> Logic
+```
+
 The system requires specific, institutional-grade external data inputs to calculate the GARCH, VWAP, and Mean Reversion formulas without latency lag. Retail-grade historical OHLCV candles are entirely insufficient for the core algorithms.
 
 ### A. Level 1 (L1) Top of Book (BBO)

@@ -30,6 +30,30 @@ An order can only exist in one of the following hard-coded statuses:
 5.  `CANCELED`: The order was deliberately killed by the SOR or VaR breach.
 6.  `UNKNOWN`: **(The Danger State)**. A Timeout occurred. 
 
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING_SUBMIT : Generate clientOid\nSend to Exchange
+    PENDING_SUBMIT --> ACKNOWLEDGED : WebSocket Confirm
+    PENDING_SUBMIT --> UNKNOWN : HTTP 504 Timeout
+    PENDING_SUBMIT --> FAILED_TO_SUBMIT : HTTP 400 Bad Request
+    
+    ACKNOWLEDGED --> PARTIALLY_FILLED : Partial Execution
+    ACKNOWLEDGED --> FILLED : Full Execution
+    ACKNOWLEDGED --> CANCELED : Cancel Request
+    
+    PARTIALLY_FILLED --> FILLED : Remaining Executed
+    PARTIALLY_FILLED --> CANCELED : Remaining Canceled
+    
+    UNKNOWN --> RECONCILIATION : Trigger Rescue Protocol
+    
+    state RECONCILIATION {
+        [*] --> QueryExchange : GET /order?clientOid
+        QueryExchange --> FILLED : Exchange reports Closed
+        QueryExchange --> ACKNOWLEDGED : Exchange reports Open
+        QueryExchange --> FAILED_TO_SUBMIT : Exchange reports Not Found
+    }
+```
+
 ## 4. The Reconciliation Engine (Handling "UNKNOWN" States)
 If a `PENDING_SUBMIT` order does not transition to `ACKNOWLEDGED` or `FILLED` within $N$ milliseconds, the system forces it into the `UNKNOWN` state.
 

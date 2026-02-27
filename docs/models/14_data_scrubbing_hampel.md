@@ -32,6 +32,32 @@ The Hampel Filter is the industry gold standard for time-series data scrubbing. 
 ### The Logic Gate
 If a new inbound tick $x_t$ breaches the Threshold boundary, the system **rejects and overwrites** it. The rogue tick is replaced with the rolling median ($M_t$), preserving the continuity of the array without poisoning the downstream volatility formulas.
 
+```mermaid
+graph TD
+    classDef stream fill:#2563eb,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef calc fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef check fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef clean fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef dirty fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Tick("New Tick Inbound (x_t)"):::stream
+    
+    Median["Calculate Rolling Median (M_t)\nover last K ticks"]:::calc
+    MAD["Calculate Median Absolute Deviation (MAD_t)"]:::calc
+    
+    Threshold["Define Rejection Boundaries: \nM_t ± (3 * MAD_t)"]:::calc
+
+    Eval{"Is x_t outside boundaries?"}:::check
+    
+    Tick --> Median --> MAD --> Threshold --> Eval
+    
+    Eval -- "Yes (Rogue Tick)" --> Scrub["Scrub Data:\nOverwrite x_t with M_t"]:::dirty
+    Eval -- "No (Valid)" --> Pass["Keep Original x_t"]:::clean
+    
+    Scrub --> Out("Send Clean Tick to Quantitative Engine"):::clean
+    Pass --> Out
+```
+
 ## 4. Implementation in STOCKSTATS (Python)
 
 ```python

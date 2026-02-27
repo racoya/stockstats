@@ -33,6 +33,29 @@ $$
 
 If $P(1 \to 1)$ is $0.95$, it means once the market enters a Trend, there is a 95% probability it will *stay* in a Trend for the next time period.
 
+```mermaid
+graph TD
+    classDef data fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef hmm fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef state0 fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef state1 fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef state2 fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Data("Observation Vector\n[Returns, GARCH Volatility]"):::data
+    FitHMM["Fit Gaussian HMM\n(Unsupervised Clustering)"]:::hmm
+    Predict{"Predict Hidden State\n(Based on Transition Matrix)"}:::hmm
+
+    Data --> FitHMM --> Predict
+
+    Predict -- "State 0" --> S0["State 0: Ranging/Choppy\n(Low Vol)"]:::state0
+    Predict -- "State 1" --> S1["State 1: Trending\n(High Vol)"]:::state1
+    Predict -- "State 2" --> S2["State 2: Crash/Panic\n(Extreme Vol)"]:::state2
+
+    S0 --> Act0["Authorize Mean Reversion\n(StatArb, GARCH Bands)"]:::state0
+    S1 --> Act1["VETO Mean Reversion\nAuthorize Momentum"]:::state1
+    S2 --> Act2["SYSTEM KILL SWITCH\nCancel All Orders"]:::state2
+```
+
 ## 3. Implementation in STOCKSTATS (The Logic Tree)
 
 The Quantitative Engine runs the HMM asynchronously alongside the core pricing engine to act as the ultimate "Veto" switch.

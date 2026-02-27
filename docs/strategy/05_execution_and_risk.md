@@ -4,6 +4,55 @@
 To define the mechanisms that translate mathematical signals into live market orders while relentlessly protecting the proprietary trading capital from slippage, flash crashes, and algorithmic runaways.
 
 ## 2. Order Routing & Execution Algorithms (The Hands)
+
+```mermaid
+graph TD
+    classDef signal fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef risk fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef exec fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef fail fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff;
+
+    S("Mathematical Trade Signal\nPrice, Size, Direction"):::signal
+    
+    subgraph 1. Pre-Trade Risk Validation
+        FatFinger{"Fat Finger Check\n(< 5% Portfolio?)"}:::risk
+        VaR{"Global VaR Check\n(Within 95% Limit?)"}:::risk
+        Latency{"Heartbeat Monitor\n(API Lag < 50ms?)"}:::risk
+        Toxicity{"L2 Toxicity Check\n(OBI < 0.7?)"}:::risk
+    end
+
+    subgraph 2. The Execution Router
+        UUID["Generate clientOid\n(Determinism)"]:::exec
+        Algo{"Algorithm Selection"}:::exec
+        VWAP["VWAP Slicer"]:::exec
+        TWAP["TWAP Slicer"]:::exec
+    end
+
+    subgraph 3. Post-Trade Reconciliation
+        Timeout{"HTTP 504 Timeout?"}:::fail
+        Rescue["State Machine Rescue\nQuery by clientOid"]:::fail
+        Slippage["Calculate Realized\nSlippage Delta"]:::exec
+    end
+
+    S --> FatFinger
+    FatFinger -- Pass --> VaR
+    VaR -- Pass --> Latency
+    Latency -- Pass --> Toxicity
+    
+    Toxicity -- Pass --> UUID
+    UUID --> Algo
+    Algo -- High Urgency --> TWAP
+    Algo -- Low Urgency --> VWAP
+    
+    VWAP --> Ex("Exchange API")
+    TWAP --> Ex
+    
+    Ex --> Timeout
+    Timeout -- "Yes (Zombie Order)" --> Rescue
+    Timeout -- "No (Success)" --> Slippage
+    Rescue -- "Order Found" --> Slippage
+```
+
 The system strictly prohibits standard "Market Orders" to prevent unpredictable slippage impact.
 
 ### A. Smart Order Routing (SOR)

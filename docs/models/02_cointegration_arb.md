@@ -33,6 +33,33 @@ This is the critical "Stop/Go" gate for the Quantitative Engine. We must prove t
 
 If the ADF test returns a **p-value $\le 0.05$** (and the ADF test statistic is more negative than the critical value), we reject the Null Hypothesis. We now possess mathematical proof of cointegration.
 
+```mermaid
+graph TD
+    classDef ingest fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef math fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef exec fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef veto fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+
+    A("Ingest Price A"):::ingest
+    B("Ingest Price B"):::ingest
+
+    OLS["OLS Regression\n(Price_A = α + β * Price_B)"]:::math
+    Spread["Extract Spread (Residuals)\nSpread = Price_A - (β * Price_B)"]:::math
+    ADF{"ADF Stationarity Test\n(Is p-value <= 0.05?)"}:::math
+
+    A --> OLS
+    B --> OLS
+    OLS -- "Outputs β" --> Spread
+    Spread --> ADF
+
+    ADF -- "No (Random Walk)" --> Veto["Veto Execution\n(Non-Stationary)"]:::veto
+    ADF -- "Yes (Cointegrated)" --> Z["Calculate Spread Z-Score"]:::math
+
+    Z -- "Z >= +2.0" --> S["Short Spread\n(Short A, Long β*B)"]:::exec
+    Z -- "Z <= -2.0" --> L["Long Spread\n(Long A, Short β*B)"]:::exec
+    Z -- "|Z| <= 0.1" --> F["Flatten\n(Close Both Legs)"]:::exec
+```
+
 ## 3. Implementation in STOCKSTATS (The Logic Tree)
 
 ### Python Engine Logic

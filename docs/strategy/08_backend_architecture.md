@@ -23,6 +23,58 @@ A monolithic architecture is dangerous for algorithmic trading. If the frontend 
 *   **Isolation:** If a massive historical backtest query bottlenecks this service, the core trading services (1, 2, and 3) remain 100% unaffected.
 
 ## 3. Inter-Service Communication
+
+```mermaid
+graph TD
+    classDef Python fill:#3776AB,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef Node fill:#339933,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef DB fill:#336791,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef External fill:#F7931A,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef Frontend fill:#000000,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Exchanges("External Exchanges\n(Binance, IBKR)"):::External
+    UI("Frontend Dashboard\n(Next.js)"):::Frontend
+
+    subgraph Service 1: Ingestion Engine
+        Ingest("Python WebSocket\nCCXT Async"):::Python
+    end
+
+    subgraph Service 2: Logic Engine
+        Math("Python Core\nGARCH, OLS, HMM"):::Python
+    end
+
+    subgraph Service 3: Execution Engine
+        Exec("Python Smart Router\nTWAP, VWAP"):::Python
+    end
+
+    subgraph Service 4: Operations API
+        API("Node.js / Express\nPrisma ORM"):::Node
+    end
+
+    subgraph Data Layer
+        TSDB[("TimescaleDB\n(Tick History)")]:::DB
+        PG[("PostgreSQL\n(Ledger/Users)")]:::DB
+        Redis[("Redis\n(L2 Cache & Sub)")]:::DB
+        Kafka{{"Kafka / RabbitMQ\n(Event Bus)"}}
+    end
+
+    Exchanges -- "L1/L2 Websockets" --> Ingest
+    Ingest -- "Normalize & Scrub" --> TSDB
+    Ingest -- "Real-Time Push" --> Redis
+    
+    Redis -- "Live Tick Arrays" --> Math
+    TSDB -- "Historical Fit" --> Math
+    Math -- "Trade Signal (JSON)" --> Kafka
+    
+    Kafka -- "Consume Signal" --> Exec
+    Exec -- "Submit Validated Order" --> Exchanges
+    Exec -- "Execution Receipts" --> Kafka
+    
+    Kafka -- "Audit Log" --> API
+    API -- "Write Ledger" --> PG
+    UI -- "REST/WebSocket" --> API
+```
+
 The decoupled services must communicate reliably and securely.
 *   **Message Broker (Event Bus):** Kafka or RabbitMQ will act as the central nervous system.
     *   *Example:* The Logic Engine publishes a `Signal_Generated` event to the message queue. The Execution Engine subscribes to that queue, picks up the event, and acts on it. This guarantees no signals are dropped even if the Execution Engine restarts.

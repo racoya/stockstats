@@ -39,6 +39,35 @@ We classify the raw tick prints as "Maker-Buyer" (aggressive market buy hitting 
 
 If the Trade Flow Ratio shifts to 80% aggressive Market Sells over a 5-second window, and the OBI is simultaneously negative, the environment is definitively hostile (Toxic).
 
+```mermaid
+graph TD
+    classDef l2 fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef calc fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef logic fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef exec fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef pause fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Book("L2 Snapshot Received"):::l2
+    Bid["Sum Bid Volume (K levels)"]:::calc
+    Ask["Sum Ask Volume (K levels)"]:::calc
+    
+    OBI["Calculate OBI:\n(Bid - Ask) / (Bid + Ask)"]:::calc
+    TradeFlow["Calculate Trade Flow Ratio\n(Maker-Buyer vs Maker-Seller)"]:::calc
+    
+    Book --> Bid --> OBI
+    Book --> Ask --> OBI
+    TradeFlow --> Eval
+    
+    Eval{"Is Environment Toxic for our Trade direction?\n(e.g., Massive Spoof Asks + Want to BUY)"}:::logic
+    OBI --> Eval
+    
+    Eval -- "Yes (High Toxicity)" --> Veto["PAUSE Execution\nHold Remaining VWAP Slices"]:::pause
+    Eval -- "No (Clean Flow)" --> Auth["Deploy Next VWAP Slice"]:::exec
+    
+    Veto --> Wait("Wait for OBI to normalize\ntoward 0.0"):::pause
+    Wait -.-> Eval
+```
+
 ## 4. Implementation (The VWAP Pause Protocol)
 
 ### Real-Time Pipeline
