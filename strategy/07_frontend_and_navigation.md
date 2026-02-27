@@ -19,8 +19,34 @@ Based on industry standards for secure internal tools, a unified 404 (Not Found)
     *   **Analyst 404:** Redirects or offers links back to the primary research dashboard, data querying interface, and historical backtesting suites.
 *   **Security Posture:** Unauthorized access attempts (403 masquerading as 404) will not reveal whether a specific Admin URL truly exists, adhering to "security through obscurity" best practices for internal tools.
 
-## 4. Documentation Maintenance
+## 4. User Experience (UX) & Interface Layout
+The UI must prioritize speed, data density, and infallible action-taking during high-stress market environments. The design language will be dark-mode native (to reduce eye strain) with highly contrasting typography.
+
+### A. The Global Navigation Structure
+*   **Top Bar (Persistent):** Displays aggregate portfolio Net Asset Value (NAV), Daily PnL, global API connection status (Green/Red indicator), and the master "Kill All Routes" panic button (Admin only).
+*   **Left Sidebar (Collapsible):** Dynamic routing based on RBAC. Contains primary view toggles: 
+    *   `[Execution Terminal]`
+    *   `[Portfolio & Risk]`
+    *   `[Quant Analytics]`
+    *   `[System Logs]` (Admin only).
+
+### B. Core Module: The Execution Terminal
+This is the primary screen for the `Trader` role. It must prevent cognitive overload while presenting all necessary data to approve a Phase 2 automated signal.
+*   **Left Column (The Signal):** A clean panel displaying the raw JSON output from the Mathematical Engine translated into human-readable text. It explicitly highlights the Asset, Direction (Long/Short), Target $1R$ price, and the Expected Value $E(R)$.
+*   **Center Column (The Chart):** A deeply integrated Lightweight Chart (TradingView). It plots the real-time Tick data overlaid with the *live* GARCH $\pm 2\sigma$ bands and OLS regression slope. This provides immediate visual proof of the mathematical anomaly.
+*   **Right Column (The Action):** The Order Ticket. Pre-filled by the algorithm. The user sees the expected slippage, the required fractional Kelly size, and a highly prominent **[Authorize Execution]** button, alongside a **[Veto Signal]** button.
+
+### C. Core Module: Portfolio & Risk Matrix
+This is the primary screen for the `Admin` and `Analyst` roles.
+*   **The Heatmap:** A visual matrix showing current exposure across all liquid assets. If the Copula model detects high tail-risk dependency between two active long positions, they flash orange/red to indicate clustered risk.
+*   **Active Drawdown Gauge:** A dominant visual gauge tracking the current portfolio drawdown against the hard-coded VaR limit. As the portfolio approaches the system-wide kill switch threshold, the UI elements escalate from green to amber, to flashing red.
+
+### D. UX Interaction Principles
+*   **No Polling:** Users must never click a "Refresh" button. All prices, PnL metrics, and signal alerts must stream instantly via Server-Sent Events (SSE) or WebSockets.
+*   **Confirmation Modals:** Any destructive action (e.g., manually liquidating a position or overriding the algo) requires a double-confirmation modal stating the explicit financial impact.
+
+## 5. Documentation Maintenance
 As the application scales and new modules (e.g., specific strategy pods, new data visualization screens) are added:
-*   This document (`06_frontend_and_navigation.md`) must be routinely updated.
+*   This document (`07_frontend_and_navigation.md`) must be routinely updated.
 *   The mapping of Role $\rightarrow$ Allowed Routes must be meticulously tracked to ensure the dynamic error handling remains relevant.
 *   All future frontend components must integrate with the central RBAC provider context.
