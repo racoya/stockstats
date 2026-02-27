@@ -21,15 +21,35 @@ Static Standard Deviation algorithms are dangerously slow to adapt to volatility
     *   $\beta$: Persistence of volatility (the GARCH term).
 *   **Logic:** If the market experiences a sudden news event (large $\epsilon_{t-1}^2$), the GARCH model instantly expands the $+/- 3\sigma$ condition, avoiding premature mean-reversion entries that a static model would blindly trigger.
 
-## 3. Intraday Liquidity Mapping
-Time-of-day normalization is used as an execution filter to prevent illiquid slippage.
+## 3. Statistical Arbitrage & Cointegration
+While core mean reversion applies to single assets, the "Statistical Arbitrage" mandate defined in the Project Vision requires analyzing the spread between two or more mathematically linked assets (e.g., BTC/ETH, or two correlated equities).
+
+### A. Cointegration (Engle-Granger / Johansen Tests)
+Standard correlation only measures directional similarity. Cointegration statistically proves that the distance (spread) between two assets is mean-reverting.
+*   **The Spread Equation:** $Spread_t = AssetA_t - (\beta \times AssetB_t)$
+    *   $\beta$: The hedge ratio (calculated via OLS regression between the two assets).
+*   **Stationarity Testing:** The Logic Engine must run an **Augmented Dickey-Fuller (ADF)** test on the resulting $Spread_t$ time series.
+*   **Logic:** If the ADF test yields a p-value $< 0.05$, the spread is mathematically "stationary" (proven to mean-revert). The system then generates a Long/Short signal when the $Spread_t$ diverges $\ge \pm 2\sigma$ from its mean.
+
+## 4. Market Regime Detection
+A mean-reversion strategy will suffer catastrophic losses if executed during a strong directional breakout regime. The system must autonomously identify the current macro state.
+
+### A. Hidden Markov Models (HMM)
+The logic engine utilizes Gaussian Hidden Markov Models to classify the unobservable "state" of the market based on observable emissions (returns and volatility).
+*   **Regime Classifications (Hidden States):**
+    1.  *State 0:* Low Volatility, Choppy/Ranging (Optimal for Mean Reversion execution)
+    2.  *State 1:* High Volatility, Trending (Mean Reversion disabled, Momentum execution enabled)
+    3.  *State 2:* Extreme Volatility, Crash (All systems to cash / Risk-Off)
+*   **Logic:** Before authorizing any trade, the mathematical engine calculates the transition probability matrix to determine the most likely current $State$. If the system is in *State 1* (Trending), all opposing Mean Reversion $\sigma$-band signals are hard-vetoed.
+
+## 5. Intraday Liquidity Mapping
 
 ### A. Volume-Weighted Average Price (VWAP) Normalization
 The system cross-references real-time volume against historical intraday volume profiles.
 *   **VWAP Equation:** $P_{VWAP} = \frac{\sum_j P_j \cdot Q_j}{\sum_j Q_j}$
 *   **Logic:** Signals generated in low-liquidity zones (e.g., matching historical 20-minute periods accounting for $< 1\%$ of daily volume) are aggressively penalized. The order routing engine will automatically fraction the limit order size to prevent sweeping the order book and incurring excessive slippage.
 
-## 4. The Expectancy Framework & System Quality
+## 6. The Expectancy Framework & System Quality
 The guiding principle of every algorithmic model is a mathematically proven, positive edge over large sample sizes. To ensure this, the system relies on industry-standard quantitative nomenclature based around Initial Risk ($1R$).
 
 ### A. Position Sizing & The R-Multiple
@@ -61,7 +81,7 @@ To optimize the absolute $1R$ value, the system continuously audits historical t
 *   **Maximum Favorable Excursion (MFE):** The max paper profit reached before closing.
 *   **Logic:** Continuous MAE analysis is fed into the regression loop to algorithmically tighten stop losses, technically increasing the R-multiple for the exact same market moves without changing the entry parameters.
 
-## 5. Multi-Asset Correlation & Portfolio Sizing
+## 7. Multi-Asset Correlation & Portfolio Sizing
 To survive drawdowns, we mathematically distribute risk and protect capital dynamically.
 
 ### A. Copula Correlation Modeling (Tail Risk)
