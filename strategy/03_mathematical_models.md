@@ -3,19 +3,19 @@
 ## 1. Objective
 To formalize the mathematical principles, statistical boundaries, and execution logic that govern the $R > 0$ intelligence mandate. The system uses strict formulas, not discretionary feelings.
 
-> **Note:** For specific Python implementation logic, equations, and code architecture of the core algorithms below, refer to the deep-dive whitepapers in the [`models/` directory](models/):
-> *   [01_garch_volatility.md](models/01_garch_volatility.md)
-> *   [02_cointegration_arb.md](models/02_cointegration_arb.md)
-> *   [03_hmm_regime_detection.md](models/03_hmm_regime_detection.md)
-> *   [04_vwap_liquidity.md](models/04_vwap_liquidity.md)
-> *   [05_expectancy_and_sqn.md](models/05_expectancy_and_sqn.md)
-> *   [06_copula_kelly_sizing.md](models/06_copula_kelly_sizing.md)
-> *   [07_kalman_filters.md](models/07_kalman_filters.md)
-> *   [08_ornstein_uhlenbeck_halflife.md](models/08_ornstein_uhlenbeck_halflife.md)
-> *   [09_fractional_differencing.md](models/09_fractional_differencing.md)
-> *   [10_machine_learning_overlays.md](models/10_machine_learning_overlays.md)
-> *   [11_backtesting_rigor_and_bias.md](models/11_backtesting_rigor_and_bias.md)
-> *   [12_value_at_risk_var.md](models/12_value_at_risk_var.md)
+> **Note:** For specific Python implementation logic, equations, and code architecture of the core algorithms below, refer to the deep-dive whitepapers in the [`models/` directory]():
+> *   [01_garch_volatility.md](01_garch_volatility.md)
+> *   [02_cointegration_arb.md](02_cointegration_arb.md)
+> *   [03_hmm_regime_detection.md](03_hmm_regime_detection.md)
+> *   [04_vwap_liquidity.md](04_vwap_liquidity.md)
+> *   [05_expectancy_and_sqn.md](05_expectancy_and_sqn.md)
+> *   [06_copula_kelly_sizing.md](06_copula_kelly_sizing.md)
+> *   [07_kalman_filters.md](07_kalman_filters.md)
+> *   [08_ornstein_uhlenbeck_halflife.md](08_ornstein_uhlenbeck_halflife.md)
+> *   [09_fractional_differencing.md](09_fractional_differencing.md)
+> *   [10_machine_learning_overlays.md](10_machine_learning_overlays.md)
+> *   [11_backtesting_rigor_and_bias.md](11_backtesting_rigor_and_bias.md)
+> *   [12_value_at_risk_var.md](12_value_at_risk_var.md)
 
 ## 2. Dynamic Volatility & Mean Reversion
 The core engine identifies statistical anomalies (deviation from the mean), but must dynamically adjust to changing market environments to prevent entering trades against structural macro shifts.

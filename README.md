@@ -12,7 +12,7 @@ The architecture and strategic goals of the project are documented in the `strat
 1.  **[Project Vision & Scope](strategy/01_project_vision_and_scope.md)**: Executive summary and core mandates.
 2.  **[Data Architecture](strategy/02_data_architecture.md)**: Infrastructure for data ingestion, storage, and caching (Cryptos, Equities).
 3.  **[Mathematical Models](strategy/03_mathematical_models.md)**: The $R > 0$ logic engine, dynamic volatility (GARCH), regression models, and fractional Kelly sizing.
-    *   *See the **[Mathematical Models Index](strategy/models/00_model_index.md)** for the 12 deep-dive algorithmic whitepapers (Kalman Filters, OU Half-Life, Copulas, etc).*
+    *   *See the **[Mathematical Models Index](models/00_model_index.md)** for the 12 deep-dive algorithmic whitepapers (Kalman Filters, OU Half-Life, Copulas, etc).*
 4.  **[Notification Engine](strategy/04_notification_engine.md)**: Real-time alerts, Slack/SMS integration, and signal formatting.
 5.  **[Execution & Risk](strategy/05_execution_and_risk.md)**: Smart Order Routing (SOR), execution algorithms (TWAP/VWAP), and systemic kill switches.
 6.  **[Internal Operations](strategy/06_internal_operations.md)**: Role-Based Access Control (RBAC), immutable audit ledgers, and live monitoring dashboards for the trading desk.
