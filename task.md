@@ -10,6 +10,7 @@ Phase 1: Project Vision and Core Requirements
 Phase 2: Architecture & Logic Definition
 - [x] Document 2: `02_data_architecture.md` (Data ingestion, storage, APIs)
 - [x] Document 3: `03_mathematical_models.md` (Regression loops, R>0 Engine, Copulas, Position Sizing)
+- [x] Deep Dive: `models/00_model_index.md` (Master Index & Summaries)
 - [x] Deep Dive: `models/01_garch_volatility.md` (GARCH implementation)
 - [x] Deep Dive: `models/02_cointegration_arb.md` (Statistical Arbitrage via ADF)
 - [x] Deep Dive: `models/03_hmm_regime_detection.md` (Hidden Markov Models)
