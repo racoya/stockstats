@@ -55,4 +55,4 @@ Phase 6: Core Development
 
 Phase 7: Operations & Trading Desk
 - [x] Initialize Prisma ORM matching the immutable PostgreSQL ledger.
-- [ ] Scaffold Next.js frontend with Shadcn-like structure for the dashboard.
+- [x] Scaffold Next.js frontend with Shadcn-like structure for the dashboard.
