@@ -16,6 +16,8 @@ The architecture and strategic goals of the project are documented in the `strat
 5.  **[Execution & Risk](strategy/05_execution_and_risk.md)**: Smart Order Routing (SOR), execution algorithms (TWAP/VWAP), and systemic kill switches.
 6.  **[Internal Operations](strategy/06_internal_operations.md)**: Role-Based Access Control (RBAC), immutable audit ledgers, and live monitoring dashboards for the trading desk.
 7.  **[Frontend & Navigation](strategy/07_frontend_and_navigation.md)**: Dynamic routing policies and contextual 404 error pages based on user security roles (Admin, Trader, Analyst).
+8.  **[Backend Architecture](strategy/08_backend_architecture.md)**: Microservices design, internal APIs, message brokers (Kafka/RabbitMQ), and database ledger schemas.
+9.  **[Technology Stack](strategy/09_technology_stack.md)**: Python quantitative core, TypeScript operations layer, infrastructure, and deployment CI/CD.
 
 ## Tracking Progress
 Project progress and upcoming tasks are tracked in the root [`task.md`](task.md) file.

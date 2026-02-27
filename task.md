@@ -18,5 +18,9 @@ Phase 3: Execution & Operations
 - [x] Document 6: `06_internal_operations.md` (Trader tracking, permissions, PnL dashboards)
 - [x] Document 7: `07_frontend_and_navigation.md` (Role-based access control, dynamic 404 pages, routing)
 
-Phase 4: Final Specification Review
+Phase 4: Architecture & Infrastructure
+- [x] Document 8: `08_backend_architecture.md` (Microservices, Kafka, PostgreSQL ledger)
+- [x] Document 9: `09_technology_stack.md` (Python quant core, TS dashboard, Docker)
+
+Phase 5: Final Specification Review
 - [ ] Consolidate requirements into a final build specification before moving to Execution.
