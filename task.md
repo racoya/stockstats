@@ -41,6 +41,11 @@ Phase 4: Architecture & Infrastructure
 Phase 5: Implementation Setup
 - [x] Review and approve the `implementation_plan.md` artifact.
 - [x] Scaffold the top-level repository structure (`backend`, `frontend`, `operations`).
-- [/] Initialize Python environment (Poetry/Pipenv) and install quantitative model dependencies.
+- [x] Initialize Python environment (Poetry/Pipenv) and install quantitative model dependencies.
 - [x] Initialize Next.js environment for the Trading Desk UI.
 - [x] Configure root `docker-compose.yml` for local unified testing.
+
+Phase 6: Core Development
+- [ ] Write Python ingestion adapters for exchange WebSockets.
+- [ ] Implement robust `hmmlearn` Regime Detection module.
+- [ ] Implement `arch` GARCH Volatility module.

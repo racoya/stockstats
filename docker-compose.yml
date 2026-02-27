@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # The Immutable Ledger (Time-Series & Relational)
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: stockstats-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-stockstats_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_only}
+      POSTGRES_DB: ${POSTGRES_DB:-stockstats_ledger}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Dynamic State & Caching High-Frequency Metrics
+  redis:
+    image: redis:alpine
+    container_name: stockstats-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Message Broker: Decoupling Signal Generation from Execution
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: stockstats-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RMQ_PASS:-guest}
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    restart: unless-stopped
+
+  # The Quantitative Math Engine
+  # backend:
+  #   build: ./backend
+  #   container_name: stockstats-quant-engine
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - rabbitmq
+  #   environment:
+  #     - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+  # The Execution & Operations Layer (Node.js API)
+  # operations:
+  #   build: ./operations
+  #   container_name: stockstats-operations
+  #   ports:
+  #     - "4000:4000"
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - rabbitmq
+
+  # The Trading Desk UI
+  # frontend:
+  #   build: ./frontend
+  #   container_name: stockstats-trading-desk
+  #   ports:
+  #     - "3000:3000"
+
+volumes:
+  postgres_data:
+  redis_data:
