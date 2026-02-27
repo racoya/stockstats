@@ -48,4 +48,5 @@ Phase 5: Implementation Setup
 Phase 6: Core Development
 - [ ] Write Python ingestion adapters for exchange WebSockets.
 - [x] Implement robust `hmmlearn` Regime Detection module.
-- [ ] Implement `arch` GARCH Volatility module.
+- [x] Implement `arch` GARCH Volatility module.
+- [x] Implement Cointegration Stationarity module.
