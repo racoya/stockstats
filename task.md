@@ -23,6 +23,9 @@ Phase 2: Architecture & Logic Definition
 - [x] Deep Dive: `models/10_machine_learning_overlays.md` (Meta-Labeling Confirmation)
 - [x] Deep Dive: `models/11_backtesting_rigor_and_bias.md` (Deflated Sharpe & Point-in-Time)
 - [x] Deep Dive: `models/12_value_at_risk_var.md` (Covariance Matrices & Kill Switch)
+- [x] Deep Dive: `models/13_state_machine_reconciliation.md` (Handling API Timeouts)
+- [x] Deep Dive: `models/14_data_scrubbing_hampel.md` (Rogue Tick Filtration)
+- [x] Deep Dive: `models/15_orderbook_toxicity_obi.md` (HFT Spoof Defense)
 - [x] Review and improve R>0 Expectancy logic based on quantitative standards
 
 Phase 3: Execution & Operations
