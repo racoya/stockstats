@@ -13,6 +13,9 @@ Phase 2: Architecture & Logic Definition
 - [x] Deep Dive: `models/01_garch_volatility.md` (GARCH implementation)
 - [x] Deep Dive: `models/02_cointegration_arb.md` (Statistical Arbitrage via ADF)
 - [x] Deep Dive: `models/03_hmm_regime_detection.md` (Hidden Markov Models)
+- [x] Deep Dive: `models/04_vwap_liquidity.md` (Volume Profiling & Slicing)
+- [x] Deep Dive: `models/05_expectancy_and_sqn.md` (R-Multiples & MAE/MFE Optimization)
+- [x] Deep Dive: `models/06_copula_kelly_sizing.md` (Tail Risk & Fractional Allocation)
 - [x] Review and improve R>0 Expectancy logic based on quantitative standards
 
 Phase 3: Execution & Operations
