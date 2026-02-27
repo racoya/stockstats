@@ -10,6 +10,9 @@ To formalize the mathematical principles, statistical boundaries, and execution 
 > *   [04_vwap_liquidity.md](models/04_vwap_liquidity.md)
 > *   [05_expectancy_and_sqn.md](models/05_expectancy_and_sqn.md)
 > *   [06_copula_kelly_sizing.md](models/06_copula_kelly_sizing.md)
+> *   [07_kalman_filters.md](models/07_kalman_filters.md)
+> *   [08_ornstein_uhlenbeck_halflife.md](models/08_ornstein_uhlenbeck_halflife.md)
+> *   [09_fractional_differencing.md](models/09_fractional_differencing.md)
 
 ## 2. Dynamic Volatility & Mean Reversion
 The core engine identifies statistical anomalies (deviation from the mean), but must dynamically adjust to changing market environments to prevent entering trades against structural macro shifts.

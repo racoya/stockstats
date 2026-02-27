@@ -16,6 +16,9 @@ Phase 2: Architecture & Logic Definition
 - [x] Deep Dive: `models/04_vwap_liquidity.md` (Volume Profiling & Slicing)
 - [x] Deep Dive: `models/05_expectancy_and_sqn.md` (R-Multiples & MAE/MFE Optimization)
 - [x] Deep Dive: `models/06_copula_kelly_sizing.md` (Tail Risk & Fractional Allocation)
+- [x] Deep Dive: `models/07_kalman_filters.md` (Dynamic Hedge Ratios)
+- [x] Deep Dive: `models/08_ornstein_uhlenbeck_halflife.md` (Mean-Reversion Speed)
+- [x] Deep Dive: `models/09_fractional_differencing.md` (Memory Preservation for ML)
 - [x] Review and improve R>0 Expectancy logic based on quantitative standards
 
 Phase 3: Execution & Operations
