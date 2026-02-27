@@ -20,6 +20,12 @@ TypeScript provides the strict type safety required for operational UIs while ma
 *   **Usage:** The Operations API (Backend) and the Trading Desk Dashboard (Frontend).
 *   **Why TS over Python for Web:** Node.js/TypeScript handles asynchronous I/O (like pushing thousands of WebSocket updates to the frontend dashboard) highly efficiently.
 
+### C. The Conscious Exclusion of Java / C++
+While Java and C++ are the dominant languages in traditional High-Frequency Trading (HFT) firms, they have been intentionally excluded from the initial STOCKSTATS architecture for several strategic reasons:
+*   **Latency vs. Strategy:** STOCKSTATS is a *Statistical Arbitrage* and *Mean Reversion* engine, not a pure HFT market-making engine. We are trading on statistical edges measured in seconds/minutes, not nanosecond front-running. The sub-millisecond execution advantage of Java/JVM tuning is negated by the standard API latency of cryptocurrency exchanges.
+*   **Quantitative Friction:** The Python ecosystem (`pandas`, `numpy`, `scipy`) allows quantitative researchers to conceptualize, backtest, and deploy a complex math model (like GARCH) in days. Translating that same model into Java requires significantly more boilerplate code and engineering overhead, slowing down the strategy iteration cycle.
+*   **Talent & Ecosystem:** The modern web development ecosystem and open-source crypto libraries (like `ccxt`) are built almost entirely around Node.js (TypeScript) and Python. Forcing a Java architecture would require building many custom library wrappers from scratch.
+
 ## 3. The Tech Stack Breakdown
 
 ### Frontend (Trading Desk Dashboard)
