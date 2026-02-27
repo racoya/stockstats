@@ -3,7 +3,7 @@
 ## 1. Executive Summary
 The **STOCKSTATS** system is a proprietary, internally-developed algorithmic trading platform designed exclusively for our team. It is not a commercial Software-as-a-Service (SaaS) product. Its primary mandate is to execute quantitative trading strategies (focusing on mean reversion, intraday volatility profiling, and statistical arbitrage) across equities and cryptocurrency markets, ensuring a mathematically positive expectancy ($R > 0$).
 
-Crucially, the system is designed as a **comprehensive operational platform**. It will not only generate trading signals but will act as the central hub for our internal trading desk, tracking individual trader performance, managing portfolio risk, and providing a unified dashboard for all trading operations.
+Crucially, the system is designed as a **comprehensive operational platform**. It is being developed through a phased approach: initially serving as a highly advanced manual trading terminal (where algorithms generate signals but humans execute), maturing eventually into a fully autonomous algorithmic engine. Throughout all phases, it will act as the central hub for our internal trading desk, tracking individual trader performance, managing portfolio risk, and providing a unified operations dashboard.
 
 ## 2. Core Operational Mandates
 1.  **Proprietary Advantage:** The logic engine, mathematical models, and execution algorithms are strictly internal. The infrastructure must be secure, self-hosted (or securely managed in the cloud), and built to protect our "edge."
