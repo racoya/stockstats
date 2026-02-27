@@ -46,7 +46,9 @@ Phase 5: Implementation Setup
 - [x] Configure root `docker-compose.yml` for local unified testing.
 
 Phase 6: Core Development
-- [ ] Write Python ingestion adapters for exchange WebSockets.
+- [/] Write Python ingestion adapters for exchange WebSockets.
 - [x] Implement robust `hmmlearn` Regime Detection module.
 - [x] Implement `arch` GARCH Volatility module.
 - [x] Implement Cointegration Stationarity module.
+- [x] Implement Hampel Filter data scrubbing module.
+- [x] Implement Order Book Toxicity (OBI) detection module.
