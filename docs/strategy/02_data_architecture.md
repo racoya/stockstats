@@ -103,7 +103,7 @@ graph TD
 
     subgraph The Persistent SSD Domain
         T_L1[("TimescaleDB Hypertable\n(Billions of Scrubbed Ticks)")]:::tsdb
-        P_Ledger[("PostgreSQL SQL LEDGER\n(All executed trades)") ]:::pg
+        P_Ledger[("PostgreSQL SQL LEDGER\n(All executed trades)")]:::pg
         
         DS_Backtest["Phase 2 Quant Backtesting\n(Model 11: Z-Score R&D)"]:::ds
         DS_ML["Phase 8 XGBoost Training\n(Model 10: Meta-Labeling)"]:::ds
