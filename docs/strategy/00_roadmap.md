@@ -12,8 +12,9 @@ Complex mathematical models will fail catastrophically if built on dirty data or
 *   **Action items:** 
     *   Deploy **TimescaleDB** for hyper-optimized tick storage.
     *   Prioritize the implementation of the **Numba Hampel Filter (Model 14)** to mathematically scrub "Rogue Ticks" before they can permanently poison the database.
+    *   **The 50-Asset Universe Constraint:** Restrict all ingestion and logic processing strictly to a maximum of 50 assets. This mathematically prevents API rate-limit exhaustion and database I/O bottlenecks during the structural rollout.
     *   Build an explicit **API Rate Limit Manager (Token Bucket)** to autonomously throttle REST/WebSocket requests, legally protecting our IPs from exchange bans during high-volume array polling.
-*   **Completion Criteria:** The isolated Python Ingestion Engine can stably ingest, scrub, and store L1 trades and L2 snapshots 24/7 without a single memory leak or API `HTTP 429` penalty.
+*   **Completion Criteria:** The isolated Python Ingestion Engine can stably ingest, scrub, and store L1 trades and L2 snapshots for 50 assets 24/7 without a single memory leak or API `HTTP 429` penalty.
 
 ## Phase 2: The Quantitative Logic Engine ($E(R) > 0$)
 With mathematically sterile data flowing, we build the core "brain" to prove our statistical edge.

@@ -95,7 +95,8 @@ In Phase 1, the system does not automatically know that a physical trade occurre
 *   **Why This is Mandatory:** This physical logging creates the "Ground Truth" labels. 6 months from now, when we build the **XGBoost Machine Learning Overlays (Model 10)** in Phase 8, the ML models will analyze this exact database. It will learn: *"When the math said BUY, and the Copula was RED, the human trader took a massive loss."* This data is what allows the system to eventually become highly autonomous.
 
 ## 5. Summary of Phase 1 Rules
-1.  **Trust the Math, Validate the Data:** Do not guess market direction. Only execute when the system generates a signal, but always visually verify the chart to ensure the data stream isn't lagging.
-2.  **Respect the HMM Regime:** Never execute a mean-reverting strategy during a hard HMM trend state.
-3.  **Veto Toxic Flow:** If the OBI dial is red, take your hands off the keyboard. Wait for the HFT engines to turn off.
-4.  **Log Everything:** A profitable trade that isn't logged in the Immutable PostgreSQL Ledger is useless to the quantitative system's long-term evolution.
+1.  **The 50-Asset Universe Cap:** The system will only poll, calculate, and alert on a maximum of 50 pre-selected assets. Attempting to scan the entire market in Phase 1 will inevitably overwhelm both the API Rate Limits and the human trader's cognitive execution bandwidth.
+2.  **Trust the Math, Validate the Data:** Do not guess market direction. Only execute when the system generates a signal, but always visually verify the chart to ensure the data stream isn't lagging.
+3.  **Respect the HMM Regime:** Never execute a mean-reverting strategy during a hard HMM trend state.
+4.  **Veto Toxic Flow:** If the OBI dial is red, take your hands off the keyboard. Wait for the HFT engines to turn off.
+5.  **Log Everything:** A profitable trade that isn't logged in the Immutable PostgreSQL Ledger is useless to the quantitative system's long-term evolution.

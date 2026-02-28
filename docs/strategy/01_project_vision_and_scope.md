@@ -30,7 +30,7 @@ To build this end-to-end proprietary quantitative solution, STOCKSTATS is divide
 
 ### I. The Data Ingestion Engine (The Eyes)
 *   **Purpose:** To consume, mathematically scrub (via Hampel Filters), and permanently store massive amounts of real-time and historical market data (L1 trades, L2 order book depth) across multiple asset classes without relying on rate-limited retail APIs.
-*   **Requirements:** Ultra-low latency WebSocket connections, high reliability, and a robust `TimescaleDB` PostgreSQL architecture capable of storing microsecond-level tick data for un-biased Point-in-Time backtesting.
+*   **Requirements:** Ultra-low latency WebSocket connections, high reliability, and a robust `TimescaleDB` PostgreSQL architecture capable of storing microsecond-level tick data. **Crucially, during Phase 1, the ingestion universe is strictly locked to a maximum of 50 assets** to guarantee computational stability and eliminate `HTTP 429` exchange bans.
 
 ### II. The Quantitative Logic Engine (The Mathematical Brain)
 *   **Purpose:** The statistical core that processes incoming data arrays against our proprietary Linear Formulas (Kalman Filters, OLS regression, Cointegration).
