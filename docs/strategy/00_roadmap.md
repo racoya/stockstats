@@ -26,11 +26,11 @@ With mathematically sterile data flowing, we build the core "brain" to prove our
 *   **Completion Criteria:** The system successfully identifies historical pricing anomalies and mathematically proves a baseline $Expectancy (R) > 0$ after simulated real-world friction.
 
 ## Phase 3: The Grafana Command Center & Manual Execution
-To avoid the "Big Bang" trap of spending 100+ hours building a custom React UI before taking a live physical trade, we embrace pragmatism. The system acts as a radar; the human acts as the execution weapon.
+To avoid the "Big Bang" trap of spending 100+ hours building a custom React UI before taking a live physical trade, we embrace gritty pragmatism. Because we are trading our own limited retirement capital, the system acts strictly as an early-warning radar; the human founder acts as the execution weapon to prevent runaway bot algorithms from blowing up our accounts.
 *   **Action items:**
     *   Deploy **Grafana** natively on top of PostgreSQL/TimescaleDB. Use Grafana's built-in RBAC to instantly render real-time L1 ticks and GARCH bands for optical validation, serving as our Phase 1 Command Center.
     *   When the Logic Engine detects an anomaly, push a Tier 2 Webhook alert directly to Slack/Discord.
-*   **Completion Criteria:** The human trader receives a Slack alert, visually verifies the math purely via Grafana dashboards, logs into the physical broker, and successfully deploys a manual Fractional Kelly limit order. **Goal:** Prove the mathematical $R > 0$ edge with real capital before engineering complex Smart Order Routers.
+*   **Completion Criteria:** The founder receives a Discord alert, visually verifies the math purely via Grafana dashboards, logs into the physical broker, and successfully deploys a manual Fractional Kelly limit order (e.g., $\$400$ micro-slices). **Goal:** Prove the mathematical $R > 0$ edge with our own real capital and establish survival protocols before engineering complex Smart Order Routers.
 
 ## Phase 4: Risk Matrices & Capital Sizing (Defense Systems)
 Before we let the machine trade autonomously, we must teach it how to mathematically protect the capital from "Fat Tail" events.
