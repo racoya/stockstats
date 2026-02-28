@@ -1,30 +1,72 @@
-# STOCKSTATS
+# STOCKSTATS: Quantitative Statistical Arbitrage Engine
 
 ## Overview
-The STOCKSTATS system is a proprietary, internally-developed algorithmic trading platform designed exclusively for our team. Its primary mandate is to execute quantitative trading strategies (focusing on mean reversion, intraday volatility profiling, and statistical arbitrage) across equities and cryptocurrency markets, ensuring a mathematically positive expectancy ($R > 0$).
+STOCKSTATS is a proprietary, internally developed algorithmic trading platform built specifically for a **bootstrapped, basement startup**. It is expressly designed to deploy and violently protect personal retirement capital across fragmented global liquidity pools.
 
-Crucially, the system is designed as a **comprehensive operational platform**. It acts as the central hub for the internal trading desk. While the ultimate goal is fully autonomous execution, the system is being built in phases: starting as a sophisticated manual desk tracking individual trader performance and portfolio risk, and eventually maturing into an automated signal generation and execution engine.
+We are not building a generic "crypto trading bot." We are building a mathematically rigorous Statistical Arbitrage and Volatility Engine. Every physical trade must mathematically prove a Positive Expected Value ($E(R) > 0$) while surviving predatory institutional High-Frequency Trading (HFT) environments through structural defenses like VWAP micro-slicing and Copula tail-risk algorithms.
 
-## Documentation Navigation
-The architecture and strategic goals of the project are documented in the `docs/strategy/` directory:
+## The Pragmatic Roadmap (8 Phases)
+Because we are trading our own personal capital, we unconditionally recognize that autonomous trading carries extreme systemic risk. We reject monolithic "Big Bang" deployment. The system is constructed defensively in [8 distinct sequential phases](docs/strategy/00_roadmap.md):
 
-0.  **[Strategic Roadmap](docs/strategy/00_roadmap.md)**: The phased evolution from manual execution to full automation.
-1.  **[Project Vision & Scope](docs/strategy/01_project_vision_and_scope.md)**: Executive summary and core mandates.
-2.  **[Data Architecture](docs/strategy/02_data_architecture.md)**: Infrastructure for data ingestion, storage, and caching (Cryptos, Equities).
-3.  **[Mathematical Models](docs/strategy/03_mathematical_models.md)**: The $R > 0$ logic engine, dynamic volatility (GARCH), regression models, and fractional Kelly sizing.
-    *   *See the **[Mathematical Models Index](docs/models/00_model_index.md)** for the 12 deep-dive algorithmic whitepapers (Kalman Filters, OU Half-Life, Copulas, etc).*
-4.  **[Notification Engine](docs/strategy/04_notification_engine.md)**: Real-time alerts, Slack/SMS integration, and signal formatting.
-5.  **[Execution & Risk](docs/strategy/05_execution_and_risk.md)**: Smart Order Routing (SOR), execution algorithms (TWAP/VWAP), and systemic kill switches.
-6.  **[Internal Operations](docs/strategy/06_internal_operations.md)**: Role-Based Access Control (RBAC), immutable audit ledgers, and live monitoring dashboards for the trading desk.
-7.  **[Frontend & Navigation](docs/strategy/07_frontend_and_navigation.md)**: Dynamic routing policies and contextual 404 error pages based on user security roles (Admin, Trader, Analyst).
-8.  **[Backend Architecture](docs/strategy/08_backend_architecture.md)**: Microservices design, internal APIs, message brokers (Kafka/RabbitMQ), and database ledger schemas.
-9.  **[Technology Stack](docs/strategy/09_technology_stack.md)**: Python quantitative core, TypeScript operations layer, infrastructure, and deployment CI/CD.
+1. **The Ingestion Scrubber:** Point-in-time data gathering and MAD Hampel mathematical filtering.
+2. **The Logic Engine ($E(R) > 0$):** GARCH and Cointegration signaling & Shadow Mode forward-testing.
+3. **The Grafana Command Center:** Manual execution (Human-in-the-Loop) using visual Phase 1 telemetry.
+4. **Risk Matrices & Sizing:** Copula crash detection and Fractional Kelly trade sizing.
+5. **The Smart Order Router (SOR):** VWAP slicers and OBI Toxicity vetos.
+6. **Systemic Reconciliation:** The UUID State Machine and HTTP 504 Timeout Rescue protocol.
+7. **Full Autonomy:** Severing the UI and isolating the core engine.
+8. **Machine Learning Overlays:** XGBoost Meta-Labeling to veto mathematical False Positives.
 
-## Tracking Progress
-Project progress and upcoming tasks are tracked in the root [`task.md`](task.md) file.
+---
 
-**Current Status (Phase 8: Microservice Integration):**
-The mathematical and strategic theory has been fully transitioned into physical code. The monorepo is scaffolded into three distinct microservices running via Docker Compose:
-- **`backend/` (Python core)**: Houses the quantitative math engines (GARCH, Cointegration, HMM) and websocket ingestion.
-- **`operations/` (Node.js API)**: Houses the Prisma ORM mapping to the PostgreSQL immutable ledger and State Machine.
-- **`frontend/` (Next.js)**: Houses the React Trading Desk dashboard visualizing the quant models in real-time.
+## 📚 Core Architecture Blueprints (The Strategies)
+The system's structural topography is heavily documented in the `docs/strategy/` directory:
+
+1. [Strategy 00: The Roadmap](docs/strategy/00_roadmap.md)
+2. [Strategy 01: Project Vision & Scope](docs/strategy/01_project_vision_and_scope.md)
+3. [Strategy 02: Data Architecture](docs/strategy/02_data_architecture.md) (TimescaleDB, Redis, Microsecond Aggregation)
+4. [Strategy 03: Mathematical Models Summary](docs/strategy/03_mathematical_models.md)
+5. [Strategy 04: Notification Engine](docs/strategy/04_notification_engine.md)
+6. [Strategy 05: Execution and Risk](docs/strategy/05_execution_and_risk.md) (**Cancel-on-Disconnect**)
+7. [Strategy 06: Internal Operations](docs/strategy/06_internal_operations.md) (**Poison Seed API Rotation**)
+8. [Strategy 07: Frontend and Navigation](docs/strategy/07_frontend_and_navigation.md)
+9. [Strategy 08: Backend Architecture](docs/strategy/08_backend_architecture.md)
+10. [Strategy 09: Technology Stack](docs/strategy/09_technology_stack.md)
+11. [Strategy 10: Manual Trading Phase 1](docs/strategy/10_manual_trading_phase_1.md) (**The Bootstrapped MVP**)
+12. [Strategy 11: Database Schema & Ledgers](docs/strategy/11_database_schema_and_ledgers.md) (**Off-Site S3 WAL Backup**)
+13. [Strategy 12: Execution Sprints and Tickets](docs/strategy/12_execution_sprints_and_tickets.md) (**The Master Task Tracker**)
+14. [Strategy 13: Team Orientation and Training](docs/strategy/13_team_orientation_and_training.md)
+15. [Strategy 14: Shadow Paper Trading](docs/strategy/14_paper_trading_and_forward_testing.md)
+
+---
+
+## 🧠 The Quantitative Engine (The Models)
+The mathematical frameworks that generate Alpha are distinctly documented in the `docs/models/` directory.
+
+### Core Signal Generation
+* [Model 01: GARCH(1,1) Volatility Indexing](docs/models/01_garch_volatility.md)
+* [Model 02: Cointegration & Statistical Arbitrage](docs/models/02_cointegration_arb.md)
+* [Model 03: Hidden Markov Macro Regimes](docs/models/03_hmm_macro_regimes.md)
+* [Model 07: Kalman Filter Dynamic Hedging](docs/models/07_kalman_filter_hedging.md)
+* [Model 08: Ornstein-Uhlenbeck (OU) Half-Life](docs/models/08_ou_process_half_life.md)
+
+### Execution & Microstructure Defense
+* [Model 04: VWAP Distribution & Block Slicing](docs/models/04_vwap_liquidity.md)
+* [Model 13: Order State Machine & Reconciliation](docs/models/13_state_machine_reconciliation.md)
+* [Model 14: Data Scrubbing & Hampel Filters](docs/models/14_data_scrubbing_hampel.md)
+* [Model 15: L2 Order Book Imbalance (OBI) Veto](docs/models/15_order_book_imbalance.md)
+
+### Risk & Capital Matrices
+* [Model 05: Expectancy & System Quality Number (SQN)](docs/models/05_expectancy_and_sqn.md)
+* [Model 06: Clayton Copulas & Fractional Kelly Sizing](docs/models/06_copula_kelly_sizing.md)
+* [Model 12: Parametric Value at Risk (VaR)](docs/models/12_value_at_risk_var.md)
+
+### Auditing & Meta-Labeling
+* [Model 09: Fractional Differencing Arrays](docs/models/09_fractional_differencing.md)
+* [Model 10: XGBoost Meta-Labeling Engine](docs/models/10_xgboost_meta_labeling.md)
+* [Model 11: Deflated Sharpe Ratio Backtesting](docs/models/11_deflated_sharpe_backtesting.md)
+
+---
+
+## Execution Status
+As of **Sprint 1**, the structural blueprint is 100% complete and verified. The absolute next step is to open the terminal and execute `docker-compose up -d` to physically scaffold the TimescaleDB and Redis containers.
