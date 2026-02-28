@@ -115,9 +115,9 @@ If a Black Swan event occurs (e.g., an unexpected global crisis), mathematical c
 
 ## Conclusion & Next Steps
 We are building a machine that expects the environment to be actively hostile. 
-1.  We clean the data (Hampel Filters).
-2.  We prove the math (Cointegration).
-3.  We test the risk (Copulas).
-4.  We hide the execution (VWAP Slicers).
+1.  **We clean the data (Hampel Filters):** We mathematically scrub out "rogue" exchange ticks caused by API errors so our models aren't triggered by fake data.
+2.  **We prove the math (Cointegration):** We don't guess direction; we wait for the statistical spread between two highly correlated assets to break, knowing it is mathematically bound to revert.
+3.  **We test the risk (Copulas):** Before executing that edge, we scan the entire portfolio for hidden correlation traps to avoid buying into a systemic "Black Swan" flash crash.
+4.  **We hide the execution (VWAP Slicers):** When we deploy capital, we slice large orders into tiny micro-fractions to prevent predatory HFTs from seeing our size and stealing our alpha via slippage.
 
 You are now conceptually calibrated to the STOCKSTATS architecture. Your immediate next step is to review `task.md` and the **Sprint 1 Implementation Plan**, where we begin physically scaffolding the TimescaleDB and Redis pipelines. 
