@@ -90,8 +90,10 @@ You will see two databases in our Docker stack. They never mix.
 1.  **TimescaleDB (PostgreSQL):** The permanent SSD ledger. It stores billions of historical ticks. We use this strictly for **Backtesting** and training **Machine Learning** models. It is too slow for live trading.
 2.  **Redis (The RAM Cache):** Sub-millisecond memory. When the Python engine needs to know the order book depth *right now* to execute a trade, it reads from Redis. Redis only remembers the last few minutes; TimescaleDB remembers everything forever.
 
-### 3.3 The Next.js Operations Dashboard
-We use TypeScript and React (Next.js) for the human command center. It visualizes the math (Grafana/Lightweight Charts) and allows human traders to manually authorize or veto executions during our Phase 1 rollout.
+### 3.3 The Pragmantic Command Center (Grafana -> Next.js)
+Because we are a bootstrapped startup trading our own retirement capital, we do not waste 100+ hours building a glamorous bespoke React UI before taking our first physical trade. 
+*   **Phase 1 (Day 1):** We use **Grafana** natively hooked into TimescaleDB. It visually plots our math (e.g., GARCH bands) allowing the founder to manually authorize or veto executions via physical brokerage accounts.
+*   **Phase 5 (The Future):** Only after proving the mathematical edge ($E(R)>0$) with real money will we build the custom **Next.js (React/TypeScript)** Operations Dashboard to manage automated Smart Order Routing.
 
 ---
 
@@ -100,8 +102,9 @@ We use TypeScript and React (Next.js) for the human command center. It visualize
 Making money is secondary. **Not losing capital to bugs or flash crashes is our primary directive.**
 
 ### 4.1 The VWAP Slicer ([Model 04](../models/04_vwap_liquidity.md))
-If the algorithm decides to buy $\$100,000$ of Ethereum, we **never** send a $\$100k$ market order. That would crush the exchange order book and we would lose $2\%$ immediately to slippage.
-*   **Our Protocol:** The system slices the $\$100k$ block into twenty $\$5,000$ micro-orders over 5 minutes. This hides our structural footprint from predators.
+Even though we are trading smaller personal capital (e.g., a $\$2,000$ position), we **never** send a $\$2k$ market order. Market orders instantly surrender edge via the Bid/Ask spread and Taker fees.
+*   **Our Protocol (Manual Phase 1):** The human founder manually mimics the VWAP slicer. A $\$2,000$ block is mentally sliced into five $\$400$ limit micro-orders deployed over 3 minutes.
+*   **Our Protocol (Automated Phase 5+):** The Python Execution Router autonomously slices large parent orders into micro-fractions to completely hide our structural footprint from predatory HFTs.
 
 ### 4.2 The UUID State Machine ([Model 13](../models/13_state_machine_reconciliation.md))
 *   "Zombie Orders" destroy hedge funds. If we send an order, and my internet drops, did the order fill? Do we send it again?
