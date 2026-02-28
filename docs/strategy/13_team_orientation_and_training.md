@@ -31,8 +31,9 @@ The formula above is a blunt instrument. It evaluates a strategy in a theoretica
 *   **Our Solution (Models 06 & 12 - Copulas & VaR):** We assume the "Average Loss" lies to us. We use **Clayton Copulas** to mathematically model the probability of an extreme correlation crash (e.g., BTC and ETH both dropping 15% simultaneously) and override execution before the event hits.
 
 #### C. The Blind Spot of Time (Capital Velocity)
-*   **The Problem:** Strategy A has an $E(R)$ of $+1.0R$ but trades once a month. Strategy B has an $E(R)$ of $+0.1R$ but trades 50 times a day. Basic math says Strategy A is better.
-*   **Our Solution (Model 06 - Kelly Sizing):** Strategy B is vastly superior because of **Capital Velocity**. Turning capital over 50 times a day compoundingly generates massive alpha. We use the **Fractional Kelly Criterion** to mathematically size these high-velocity trades to maximize the compound growth rate without risking statistical ruin.
+*   **The Problem:** Strategy A has an $E(R)$ of $+1.0R$ per trade, but only trades once a month. Strategy B has an $E(R)$ of $+0.1R$ per trade, but trades 50 times a day. If you only look at the basic $E(R)$ *per trade*, Strategy A looks ten times better.
+*   **Our Solution (Model 06 - Kelly Sizing):** We evaluate edges based on **Compound Annual Growth Rate (CAGR)**, not just per-trade $E(R)$. Strategy B is vastly superior because mathematically, turning capital over 50 times a day at $+0.1R$ compoundingly generates massive alpha over a month compared to a single $+1.0R$ event. We use the **Fractional Kelly Criterion** to mathematically size these high-velocity trades to maximize that compound growth without risking statistical ruin.
+
 
 ---
 
