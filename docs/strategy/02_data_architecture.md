@@ -135,3 +135,7 @@ The system requires specific, institutional-grade external data inputs to calcul
 ### C. Tick-Level Aggregated Trades (Time and Sales)
 *   **Target Consumer:** The *Mathematical Logic Engine*.
 *   **Mathematical Purpose:** The GARCH variance models ($\sigma$) and Kalman Hedge Ratios require raw, continuous tick-level inputs to instantly detect volatility structural breaks ($\epsilon^2$) rather than waiting for an arbitrary 1-minute candle to close.
+
+### D. The HFT Race Condition (Microsecond Aggregation)
+*   **The Problem:** During a flash crash, Binance might instantly route 400 individual L1 trades within the exact same rolling millisecond. If the system attempts to push 400 identically timestamped ticks into the Redis GARCH array (Model 01), the Python linear algebra matrices (NumPy) will instantly crash due to mathematically impossible 0-time intervals ($dt=0$ causing infinite variance).
+*   **The Requirement:** The Ingestion Engine (Service 1) must mandate **Microsecond Tick Aggregation**. Before writing to Redis or TimescaleDB, if $N$ trades arrive with identical microsecond timestamps, they must be mathematically coalesced into a single Volume-Weighted Average Tick. This preserves the exact capital flow without structurally nuking the quantitative matrices.

@@ -30,6 +30,11 @@ The central operational hub during active continuous trading.
 *   **The Algorithmic Logging Feed:** A scrolling stream of what the mathematical engines are currently structurally analyzing (e.g., `14:02:01 UTC | BTC_USD | Signal: 2.1 Sigma Deviation | Action: Paused | Reason: OBI Toxicity = -0.85`).
 *   **The Master Intervention Interface:** A prominent, heavily authenticated section allowing an Admin to instantly liquidate a specific algorithm's positions to cash, or trigger the Global Halt during unforeseen, non-mathematical Black Swan events (e.g., a total exchange collapse).
 
+### A. The "Poison Seed" (API Key Rotation)
+Algorithms have been drained by rogue actors gaining access to "stale" Execution API keys that were never rotated.
+*   **The Problem:** An engineer accidental commits a `.env` file containing the physical Trading API keys to a public GitHub repo. The system is instantly compromised.
+*   **The Operations Protocol:** The UI Terminal must contain a physical **Key Rotation Vault**. The Operations mandate states that Exchange API keys must be hard-coded with a maximum 30-day expiration window natively on the Exchange (e.g., Binance API management). The terminal will pulse a Critical Alert 48 hours before the keys expire, forcing the Administrator to manually cycle new cryptographic keys into the vault, ensuring a compromised "Poison Seed" can never permanently gut the fund.
+
 ## 5. Dynamic Routing & Contextual 404 Security
 The system must gracefully handle HTTP navigation errors while maintaining strict systemic security per the authenticated user's RBAC level. This is critical for preventing unprivileged roles from accessing dormant administrative endpoints.
 
