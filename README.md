@@ -32,7 +32,7 @@ The system's structural topography is heavily documented in the `docs/strategy/`
 8. [Strategy 07: Frontend and Navigation](docs/strategy/07_frontend_and_navigation.md)
 9. [Strategy 08: Backend Architecture](docs/strategy/08_backend_architecture.md)
 10. [Strategy 09: Technology Stack](docs/strategy/09_technology_stack.md)
-11. [Strategy 10: Manual Trading Phase 1](docs/strategy/10_manual_trading_phase_1.md) (**The Bootstrapped MVP**)
+11. [Strategy 10: Manual Trading Phase 1](docs/strategy/10_phase_3_manual_trading.md) (**The Bootstrapped MVP**)
 12. [Strategy 11: Database Schema & Ledgers](docs/strategy/11_database_schema_and_ledgers.md) (**Off-Site S3 WAL Backup**)
 13. [Strategy 12: Execution Sprints and Tickets](docs/strategy/12_execution_sprints_and_tickets.md) (**The Master Task Tracker**)
 14. [Strategy 13: Team Orientation and Training](docs/strategy/13_team_orientation_and_training.md)

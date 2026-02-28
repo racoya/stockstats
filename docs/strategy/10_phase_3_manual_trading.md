@@ -1,11 +1,11 @@
-# Strategy 10: The Phase 1 Manual Trading Blueprint
+# Strategy 10: The Phase 3 Manual Trading Blueprint
 
 ## 1. The Operational Objective
-As defined in the [00_roadmap.md](00_roadmap.md), STOCKSTATS will not launch as a fully autonomous black-box. **Phase 1** is the "Human-in-the-Loop" epoch, but we must be extremely realistic about our context.
+As defined in the [00_roadmap.md](00_roadmap.md), STOCKSTATS will not launch as a fully autonomous black-box. **Phase 3** is the "Human-in-the-Loop" epoch, but we must be extremely realistic about our context.
 
 We are not an institutional hedge fund with millions in backing. We are a gritty, bootstrapped startup operating out of a basement. We are trading our own personal retirement capital. Therefore, survival and hyper-conservative risk management are infinitely more important than early profits.
 
-During this initial startup phase, the Quantitative Logic Engine acts entirely as a highly advanced early-warning radar. It calculates complex linear algebra, screens for structural anomalies, and generates Tier 2 Webhook alerts. **However, you, the founder, act as the physical execution engine.**
+During this initial manual phase, the Quantitative Logic Engine acts entirely as a highly advanced early-warning radar. It calculates complex linear algebra, screens for structural anomalies, and generates Tier 2 Webhook alerts. **However, you, the founder, act as the physical execution engine.**
 
 This document defines exactly how we interact with the raw mathematical outputs to execute trades safely, ensuring we accurately track the System Quality Number (SQN) while actively building the dataset required to train the Phase 8 Machine Learning (XGBoost) models without bankrupting our personal accounts.
 
@@ -77,10 +77,10 @@ Before executing a single dollar of our retirement fund, we check the telemetry 
 We have confirmed the math and authorized the risk. We are ready to act.
 *   **The Pre-Flight Check:** We look at the **Order Book Toxicity (OBI)** dial natively calculated in the server. 
 *   **The Scenario:** The dial reads $-0.85$ (Extreme Sell Pressure). The institutional HFTs are saturating the ask.
-*   **The Action:** We *do not execute*. We hold our capital. Phase 1 is about discipline. We watch the indicator. After 45 seconds, the spoof walls clear. The OBI returns to $+0.12$. The flow is clean.
+*   **The Action:** We *do not execute*. We hold our capital. Phase 3 is about discipline. We watch the indicator. After 45 seconds, the spoof walls clear. The OBI returns to $+0.12$. The flow is clean.
 
 ### Step 5: Manual Slicing & Deployment (The Execution)
-Because the automated Smart Order Router (VWAP) is disabled in Phase 1, the human must mimic it manually.
+Because the automated Smart Order Router (VWAP) is disabled in Phase 3, the human must mimic it manually.
 *   **The Action:** Instead of firing a $\$2,000$ market order (which pays high Taker fees and instantly degrades our $R$ expectancy), we switch to the Binance/Kraken screen.
 *   **The Slice:** We manually place 5 sequential $\$400$ *Maker Limit* orders at the bid over the next 3 minutes, mimicking a basic TWAP algorithm. This earns the exchange rebate and preserves our mathematical edge.
 
@@ -96,8 +96,8 @@ In Phase 1, the system does not automatically know that a physical trade occurre
     *   *Actual Trade Size:* (How much of the $f^*$ allowance was used).
 *   **Why This is Mandatory:** This physical logging creates the "Ground Truth" labels. 6 months from now, when we build the **XGBoost Machine Learning Overlays (Model 10)** in Phase 8, the ML models will analyze this exact database. It will learn: *"When the math said BUY, and the Copula was RED, the human trader took a massive loss."* This data is what allows the system to eventually become highly autonomous.
 
-## 5. Summary of Phase 1 Rules
-1.  **The 50-Asset Universe Cap:** The system will only poll, calculate, and alert on a maximum of 50 pre-selected assets. Attempting to scan the entire market in Phase 1 will inevitably overwhelm the API Rate Limits and our own cognitive bandwidth.
+## 5. Summary of Phase 3 Rules
+1.  **The 50-Asset Universe Cap:** The system will only poll, calculate, and alert on a maximum of 50 pre-selected assets. Attempting to scan the entire market in Phase 3 will inevitably overwhelm the API Rate Limits and our own cognitive bandwidth.
 2.  **Trust the Math, Verify the Data:** Do not guess market direction. Only execute when the system generates a signal, but always visually verify the Grafana chart to ensure the data stream isn't lagging. We cannot afford to lose our retirement savings to a broken WebSocket.
 3.  **Respect the HMM Regime:** Never execute a mean-reverting strategy during a hard HMM trend state.
 4.  **Veto Toxic Flow:** If the OBI dial is red, take your hands off the keyboard. We cannot win a speed race against institutional HFT algorithms.
