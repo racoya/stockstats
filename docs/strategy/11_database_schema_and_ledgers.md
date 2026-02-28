@@ -18,8 +18,8 @@ erDiagram
         varchar(20) symbol PK "e.g., BTC/USD"
         varchar(30) exchange PK
         varchar(100) exchange_trade_id PK
-        "decimal(24,8)" price
-        "decimal(24,8)" volume
+        decimal price "Precision: 24,8"
+        decimal volume "Precision: 24,8"
         varchar(4) side "BUY or SELL"
         boolean is_scrubbed "Model 14: Hampel scrub state"
     }
@@ -30,7 +30,7 @@ erDiagram
         varchar(30) exchange PK
         jsonb bids "L2 depth"
         jsonb asks "L2 depth"
-        "decimal(10,4)" obi_ratio "Model 15: Pre-calculated Imbalance"
+        decimal obi_ratio "Model 15: Imbalance (10,4)"
     }
 
     %% The Relational Operations Domain
@@ -42,7 +42,7 @@ erDiagram
 
     SYSTEM_RISK_PARAMETERS {
         varchar(50) parameter_id PK "e.g., MAX_PORTFOLIO_VAR"
-        "decimal(10,4)" parameter_value "Model 12: VaR limits"
+        decimal parameter_value "Model 12: VaR limits (10,4)"
         timestamptz updated_at
         uuid updated_by FK "Points to RBAC_USERS"
     }
@@ -50,10 +50,10 @@ erDiagram
     STRATEGY_PERFORMANCE_METRICS {
         varchar(50) strategy_id PK "e.g., GARCH_MEAN_REV"
         date calculation_date PK "Recalculated daily"
-        "decimal(10,4)" current_sqn "Model 05"
-        "decimal(10,4)" theoretical_er "Model 05 Expectancy"
-        "decimal(10,4)" realized_er "Post-slippage Expectancy"
-        "decimal(10,4)" deflated_sharpe_ratio "Model 11"
+        decimal current_sqn "Model 05 (10,4)"
+        decimal theoretical_er "Model 05 Expectancy (10,4)"
+        decimal realized_er "Post-slippage Expectancy (10,4)"
+        decimal deflated_sharpe_ratio "Model 11 (10,4)"
     }
 
     IMMUTABLE_EXECUTION_LEDGER {
@@ -61,11 +61,11 @@ erDiagram
         timestamptz execution_time
         varchar(50) strategy_id FK "Maps to Strategy Metrics"
         varchar(20) action "LONG_ENTRY, SHORT_EXIT"
-        "decimal(24,8)" theoretical_price
-        "decimal(24,8)" fill_size "Total intended block size"
-        "decimal(10,4)" kelly_fraction_used "Model 06"
+        decimal theoretical_price "Precision: 24,8"
+        decimal fill_size "Total intended block size (24,8)"
+        decimal kelly_fraction_used "Model 06 (10,4)"
         integer hmm_macro_regime_state "Model 03 State"
-        "decimal(10,4)" ml_veto_probability "Model 10 XGBoost Score"
+        decimal ml_veto_probability "Model 10 XGBoost Score (10,4)"
         varchar(20) status "FILLED, REJECTED, VETOED"
         uuid author_user_id FK "Points to RBAC_USERS if manual"
     }
@@ -74,10 +74,10 @@ erDiagram
         uuid slice_client_oid PK "Model 13 micro-order UUID"
         uuid parent_client_oid FK "Maps to Execution Ledger"
         timestamptz slice_time
-        "decimal(24,8)" slice_price
-        "decimal(24,8)" slice_volume "Model 04 VWAP size"
+        decimal slice_price "Precision: 24,8"
+        decimal slice_volume "Model 04 VWAP size (24,8)"
         varchar(20) status "Model 13 State Machine"
-        "decimal(24,8)" slippage_delta "Execution vs Theoretical"
+        decimal slippage_delta "Execution vs Theoretical (24,8)"
     }
 
     %% Defining the Relationships
