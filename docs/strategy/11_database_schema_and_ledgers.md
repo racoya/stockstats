@@ -120,6 +120,11 @@ Standard PostgreSQL `B-Tree` indexes degrade exponentially when ingesting millio
     CREATE INDEX ix_symbol_time ON l1_tick_history (symbol, time DESC);
     ```
 
+### B. Off-Site Data Archiving (Cold Storage)
+The historical L1 Ticks mathematically scrubbed by the Hampel Filter represent the foundational proprietary "Ground Truth" data of the firm. They cannot be easily re-acquired from exchanges.
+*   **The Problem:** Docker volumes are ephemeral, and local NVMe SSDs degrade. If the database physically corrupts or a server crashes, the XGBoost Machine Learning models in Phase 8 instantly lose their entire multi-year training dataset.
+*   **The Requirement:** The system must implement PostgreSQL Write-Ahead Log (WAL) archiving natively attached to the TimescaleDB container (via `pgBackRest` or `wal-g`). Every hypertable chunk must be continuously streamed to an encrypted, off-site AWS S3 bucket for permanent cold storage.
+
 ## 4. The Quantitative Operations Schema (PostgreSQL)
 This domain connects the Execution execution layer back to the mathematical models, ensuring absolute auditability.
 
