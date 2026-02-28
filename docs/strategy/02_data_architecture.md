@@ -43,45 +43,95 @@ graph TD
     Redis -- "Sub-millisecond Read" --> Logic
 ```
 
-## 3. External Data Types & Market Sourcing
-The system requires specific, institutional-grade external data inputs to calculate the advanced mathematical formulas (GARCH, VWAP, Fractional Differencing) without geographical or chronological latency lag. 
+## 3. Deep Dive: Redis vs. PostgreSQL / TimescaleDB
+The system strictly decouples the high-frequency trading memory from the permanent backtesting storage. 
 
-Standard retail-grade historical OHLCV candles (Open, High, Low, Close, Volume) are entirely insufficient and mathematically banned from the core algorithms.
+If we attempt to run the live quantitative matrices by repeatedly querying the physical disk (PostgreSQL), the `asyncio` loop will bottleneck, resulting in execution latency ($t > 300ms$), fundamentally destroying the $R > 0$ edge. Conversely, if we attempt to store 4 years of historic ticks in RAM (Redis), the AWS server costs will be financially catastrophic.
 
-### A. Level 1 (L1) Top of Book (BBO)
-*   **Requirement:** Continuous real-time WebSocket feeds of the Best Bid and Offer (BBO).
-*   **Target Consumer:** The *Execution Routing Engine*.
-*   **Mathematical Purpose:** Required to calculate the real-time bid/ask spread (the friction coefficient) on every single tick *before* the logic engine authorizes a signal. If the instantaneous spread exceeds the expected $E(R)$ tolerances, the trade is vetoed.
+Therefore, STOCKSTATS mandates a mathematically defined dual-storage architecture.
 
-### B. Level 2 (L2) Order Book Depth
-*   **Requirement:** Real-time and historical limit orders resting in the liquidity pool (Depth of Market - DOM), up to $k=20$ levels deep.
-*   **Target Consumer:** The *Smart Order Router (SOR)* and *OBI Toxicity Detector (Model 15)*.
-*   **Mathematical Purpose:** The SOR must process L2 depth dynamically to fraction block orders. If the engine needs to execute a $\$50k$ order via VWAP, it must calculate exactly how much volume sits at the immediate Bid/Ask to avoid sweeping the book and incurring negative slippage.
+### A. The Real-Time Execution Cache (Redis)
+**Objective:** Sub-millisecond $O(1)$ read/write latency. Redis operates entirely in RAM. It does not know history; it only knows the immediate, actionable present.
 
-### C. Tick-Level Aggregated Trades (Time and Sales)
-*   **Requirement:** A massive, append-only stream of every single physically executed trade on the exchange (Price, Size, Timestamp to the millisecond, Maker/Taker flag).
-*   **Target Consumer:** The *Mathematical Logic Engine*.
-*   **Mathematical Purpose:** 
-    *   **GARCH Volatility (Model 01):** The variance models ($\sigma$) require raw tick-level inputs to instantly detect volatility shocks ($\epsilon^2$) rather than waiting for an arbitrary 1-minute candle to "close."
-    *   **Kalman Filters (Model 07):** The Hedge Ratio prediction/correction matrices update tick-by-tick.
-    *   **Lee-Ready VPIN (Model 15):** The Maker/Taker flags are required to classify ticks as aggressive buying versus aggressive selling to detect Toxic Flow.
+**Mathematical Use Cases:**
+1.  **L2 Order Book Depth & Imbalance (Model 15):** 
+    *   *The Problem:* The exchange WebSocket blasts up to 20 L2 snapshot updates per second. If we write these JSON payloads to Postgres, the disk I/O will freeze.
+    *   *The Redis Solution:* The Python script ingests the WebSocket and strictly overwrites a single Redis Key (e.g., `L2:BTC-USD`). The Python Execution Router reads this key in under 0.5ms to instantly calculate the Order Book Imbalance (OBI) toxicity vector before deciding to route a VWAP slice.
+2.  **Rolling GARCH Volatility Arrays (Model 01):** 
+    *   *The Problem:* The GARCH(1,1) model requires a continuous trailing array of 500 periods (e.g., the last 500 minutes) to calculate variance $\sigma_t^2$ instantly.
+    *   *The Redis Solution:* We utilize a Redis `List` or `Sorted Set` to store the active trailing window. As tick \#501 arrives, tick \#1 is aggressively evicted via `LPOP`. The Python engine pulls this exact, pre-formatted 500-unit array into `NumPy` in 1ms, constantly recalculating the volatility bands.
+3.  **Active Copula Dependencies (Model 06):**
+    *   The rolling 30-day Pearson correlation matrix between all traded assets (BTC/ETH/SOL) is held directly in Redis, allowing the Risk Engine to instantly verify portfolio tail-risk without executing a heavy relational query.
+
+```mermaid
+graph LR
+    classDef redis fill:#b91c1c,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef model fill:#4f46e5,stroke:#fff,stroke-width:2px,color:#fff;
+
+    subgraph The Sub-Millisecond Domain
+        R_L2[("Redis: L2_BTC_USD\n(JSON String)")]:::redis
+        R_Ticks[("Redis: Rolling_500_Ticks\n(Sorted Set)")]:::redis
+        
+        M_15["Model 15: OBI Ratio"]:::model
+        M_01["Model 01: GARCH Bands"]:::model
+        M_07["Model 07: Kalman Filter"]:::model
+    end
+
+    R_L2 -->|"0.2ms Read"| M_15
+    R_Ticks -->|"0.8ms Read"| M_01
+    R_Ticks -->|"0.8ms Read"| M_07
+```
+
+### B. The Point-in-Time Ledger (PostgreSQL & TimescaleDB)
+**Objective:** Relational Auditing, Structural Permanence, and Deep Machine Learning Training.
+
+**Mathematical Use Cases:**
+1.  **TimescaleDB: Historical Tick Arrays (Model 11 - Rigorous Backtesting):**
+    *   *The Problem:* Standard PostgreSQL `B-Tree` indexes collapse when a table reaches 500 million L1 ticks.
+    *   *The TSDB Solution:* We convert the standard table into a `Hypertable`, aggressively chunking the data into 1-Day SSD partitions. When our Quant Researchers backtest the **Cointegration (Model 02)** strategy across 2021, TSDB scans only the relevant physical hardware partitions, returning 4 years of ticks 100x faster than standard SQL.
+2.  **PostgreSQL: XGBoost Ground Truth (Model 10 & 13):**
+    *   *The Problem:* The ML classifier cannot train purely on price. It must train on "Algorithm Intention" vs. "Physical Reality".
+    *   *The Postgres Solution:* The `immutable_execution_ledger` definitively logs that the **State Machine (Model 13)** intentionally tried to buy at $\$40,000$ (Theoretical), but the active slippage caused a fill at $\$40,050$ (Realized). This relational difference between Intent and Execution is the exact $Y$-variable target the **XGBoost Classifier (Model 10)** trains against to predict future slippage.
+3.  **PostgreSQL: Performance Decay (Model 05):**
+    *   Every night, the system runs aggregate SQL `SUM()` queries across the execution ledger to recalculate the System Quality Number (SQN). If the SQN degrades below 1.6, the PostgreSQL framework automatically flags the strategy for human Review. 
+
+```mermaid
+graph TD
+    classDef tsdb fill:#ca8a04,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef pg fill:#2563eb,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef ds fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+
+    subgraph The Persistent SSD Domain
+        T_L1[("TimescaleDB Hypertable\n(Billions of Scrubbed Ticks)")]:::tsdb
+        P_Ledger[("PostgreSQL SQL LEDGER\n(All executed trades)") ]:::pg
+        
+        DS_Backtest["Phase 2 Quant Backtesting\n(Model 11: Z-Score R&D)"]:::ds
+        DS_ML["Phase 8 XGBoost Training\n(Model 10: Meta-Labeling)"]:::ds
+    end
+
+    T_L1 -->|"Historical Price Queries"| DS_Backtest
+    P_Ledger -->|"Actual Slippage Targets"| DS_ML
+    T_L1 -->|"Historical Volatility"| DS_ML
+```
 
 ## 4. The Scrubbing Gateway (Model 14 Defenses)
 Data arriving from various fragmented sources (Crypto CEXs, Equity SIP feeds) contains massive micro-structural noise, dropped packets, and API flash-crash glitches.
 
-Before a single float touches the `TimescaleDB` ledger or the `Redis` cache, the raw data streams pass through heavily optimized Numba JIT-compiled arrays. 
+Before a single float touches the `TimescaleDB` ledger or the `Redis` cache, the raw Python WebSocket streams pass through heavily optimized Numba JIT-compiled arrays. 
 *   **The Hampel Filter:** Completely mathematically scrubs "Rogue Ticks" by calculating rolling Median Absolute Deviations (MAD), overwriting impossible price spikes with localized medians to protect the downstream GARCH variance matrices from freezing.
 *   **Normalization:** Strips vendor-specific payload formatting and standardizes it strictly into UTC nanosecond timestamps and uniform ticker symbols (e.g., forcing `BTCUSD_PERP`, `XBTUSD`, and `BTC/USDT` into a single internal `BTC_USD_SWAP` taxonomy).
 
-## 5. Dual Storage Architecture (Cache vs. Ledger)
-The system strictly decouples the high-frequency trading memory from the permanent backtesting storage.
+## 5. External Data Sourcing Types
+The system requires specific, institutional-grade external data inputs to calculate the advanced mathematical formulas (GARCH, VWAP) without geographical latency lag. Standard retail-grade historical OHLCV candles (Open, High, Low, Close) are mathematically banned from the core algorithms.
 
-### A. The Real-Time Execution Cache (Redis)
-*   **Technology:** Redis In-Memory Cluster.
-*   **Function:** Holds only the most recent $N$ periods of standardized tick arrays.
-*   **Purpose:** The Quantitative Logic Engine queries Redis in sub-milliseconds to actively calculate live rolling standard deviations, Copula matrices, and Cointegration Z-Scores. Data is physically evicted from Redis as it ages out of the dynamic lookback windows to prevent memory leaks.
+### A. Level 1 (L1) Top of Book (BBO)
+*   **Target Consumer:** The *Execution Routing Engine*.
+*   **Mathematical Purpose:** Required to calculate the real-time bid/ask spread (the friction coefficient) on every single tick *before* the logic engine authorizes a signal. Vetoes trades if the spread exceeds $E(R)$ tolerances.
 
-### B. The Point-in-Time Ledger (TimescaleDB)
-*   **Technology:** TimescaleDB (PostgreSQL extension optimized for time-series hyper-tables).
-*   **Function:** The immutable, append-only permanent archive of every scrubbed tick and L2 snapshot ever ingested.
-*   **Purpose:** Backtesting Rigor (Model 11). To calculate the exact Deflated Sharpe Ratio (DSR) and train the XGBoost Machine Learning Meta-Models, the researchers must be able to query the exact state of the market as it physically existed at `2021-11-04 14:32:01.000 UTC`, completely free of Survivorship Bias or Look-Ahead Bias. TimescaleDB provides the relational power to map ticks to algorithmic executions permanently.
+### B. Level 2 (L2) Order Book Depth
+*   **Target Consumer:** The *Smart Order Router (SOR)* & *Model 15 (OBI)*.
+*   **Mathematical Purpose:** The SOR must process L2 depth dynamically to fraction block orders. If the engine needs to execute a $\$50k$ order via VWAP, it must calculate exactly how much volume sits at the immediate Bid/Ask to avoid sweeping the book.
+
+### C. Tick-Level Aggregated Trades (Time and Sales)
+*   **Target Consumer:** The *Mathematical Logic Engine*.
+*   **Mathematical Purpose:** The GARCH variance models ($\sigma$) and Kalman Hedge Ratios require raw, continuous tick-level inputs to instantly detect volatility structural breaks ($\epsilon^2$) rather than waiting for an arbitrary 1-minute candle to close.
