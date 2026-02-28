@@ -1,117 +1,169 @@
-# Strategy 11: Quantitative Database Schemas & Immutable Ledgers
+# Strategy 11: Quantitative Database Architecture & Immutable Ledgers
 
 ## 1. The Operational Objective
-Before writing the first Python `asyncio` WebSocket loop for Phase 1, the underlying PostgreSQL / TimescaleDB data structures must be rigidly defined via Data Definition Language (DDL). 
+Before writing the first Python `asyncio` WebSocket loop, the underlying PostgreSQL / TimescaleDB data structures must be rigidly defined via Data Definition Language (DDL). 
 
 A mathematical algorithm is only as robust as the data types underlying it. If cryptocurrency prices are saved as `FLOAT8` instead of `DECIMAL(24,8)`, the inherent floating-point arithmetic errors will compound across the Fractional Kelly position sizing matrices, eventually resulting in catastrophic precision failures at the exchange routing API.
 
-This document serves as the mandatory SQL blueprint for the `backend/database/` environment initialization.
+This document serves as the mandatory SQL blueprint, detailing the explicit table relationships, indexing rules, and hypertable partition strategies.
 
-## 2. Core Architectural Philosophy
-*   **Decoupled Instances:** The high-frequency `TimescaleDB` tick database MUST be physically decoupled from the Operations API (Node.js) `PostgreSQL` user management database to prevent ingestion latency spikes from freezing the Trading Desk UI.
-*   **Strict Precision:** All cryptocurrency price and volume data must utilize fixed-point `DECIMAL(24,8)` to guarantee exact fractional persistence.
-*   **The Idempotent Guarantee:** Every single order execution must enforce a `UNIQUE` index constraint on its proprietary `clientOid` UUID to mathematically eradicate the risk of API double-spending.
+## 2. Entity-Relationship Diagram (ERD)
+The database is strictly divided into two distinct domains: the high-velocity **TimescaleDB Tick Hub** (optimizing for massive `INSERT` volume) and the highly relational **PostgreSQL Operations Hub** (optimizing for RBAC and cryptographic auditing).
 
-## 3. The `Ingestion Engine` Schema (TimescaleDB)
-The high-frequency tick databases. This is where the massive volume of Level 1 trades is historically preserved for backtesting and real-time GARCH rolling windows.
+```mermaid
+erDiagram
+    %% The High-Velocity TimescaleDB Domain
+    L1_TICK_HISTORY {
+        timestamptz time PK "Hypertable Partition Key"
+        varchar(20) symbol PK "e.g., BTC/USD"
+        varchar(30) exchange PK
+        varchar(100) exchange_trade_id PK
+        decimal(24,8) price
+        decimal(24,8) volume
+        varchar(4) side "BUY or SELL"
+        boolean is_scrubbed "Hampel Filter pass"
+    }
 
-### Table: `L1_tick_history`
-This table is explicitly converted into a `TimescaleDB hypertable` partitioned heavily by the `timestamp` column. It stores the historically scrubbed data from the Numba Hampel Filter.
+    L2_ORDERBOOK_SNAPSHOT {
+        timestamptz time PK "Hypertable Partition Key"
+        varchar(20) symbol PK
+        varchar(30) exchange PK
+        jsonb bids "Top 50 levels via websocket"
+        jsonb asks "Top 50 levels via websocket"
+        decimal(10,4) obi_ratio "Pre-calculated Order Book Imbalance"
+    }
 
-```sql
-CREATE TABLE l1_tick_history (
-    -- The composite primary key strategy for hypertable chunking
-    time TIMESTAMPTZ NOT NULL,
-    symbol VARCHAR(20) NOT NULL, -- e.g., 'BTC-USDT'
-    exchange VARCHAR(30) NOT NULL, -- e.g., 'BINANCE'
+    %% The Relational Operations Domain
+    RBAC_USERS {
+        uuid user_id PK
+        varchar(255) email UK
+        varchar(255) hashed_password
+        varchar(20) role "ADMIN, TRADER, ANALYST"
+        boolean is_active
+    }
+
+    SYSTEM_RISK_PARAMETERS {
+        varchar(50) parameter_id PK "e.g., MAX_VAR"
+        decimal(10,4) parameter_value
+        timestamptz updated_at
+        uuid updated_by FK "Points to RBAC_USERS"
+    }
+
+    IMMUTABLE_EXECUTION_LEDGER {
+        uuid client_oid PK "Generated pre-execution"
+        timestamptz execution_time
+        varchar(20) symbol
+        varchar(20) action "LONG_ENTRY, SHORT_EXIT etc"
+        decimal(24,8) theoretical_price
+        decimal(24,8) actual_fill_price
+        decimal(24,8) fill_size
+        varchar(50) source_origin "ALGO vs MANUAL"
+        integer hmm_macro_regime_state
+        varchar(20) status
+        uuid author_user_id FK "Points to RBAC_USERS if manual"
+    }
     
-    -- High precision storage. FLOAT8 is banned.
-    price DECIMAL(24,8) NOT NULL,
-    volume DECIMAL(24,8) NOT NULL,
-    
-    -- The execution side (Is this an active taker buying or selling?)
-    -- Critical for VPIN and Phase 8 XGBoost Flow modeling
-    side VARCHAR(4) NOT NULL CHECK (side IN ('BUY', 'SELL')),
-    
-    -- Raw exchange ID to prevent ingestion duplication on disconnects
-    exchange_trade_id VARCHAR(100) NOT NULL, 
+    SECURITY_AUDIT_LOG {
+        uuid log_id PK
+        timestamptz timestamp
+        uuid user_id FK
+        varchar(50) action_type "LOGIN, OVERRIDE, EXPORT"
+        jsonb metadata "Contextual payload"
+        inet ip_address
+    }
 
-    PRIMARY KEY (time, symbol, exchange, exchange_trade_id)
-);
-
--- Crucial: Convert the standard table into a TimescaleDB hypertable
--- It partitions the SSD data into 1-day chunks for extreme I/O velocity.
-SELECT create_hypertable('l1_tick_history', 'time', chunk_time_interval => INTERVAL '1 day');
+    %% Defining the Relationships
+    RBAC_USERS ||--o{ SYSTEM_RISK_PARAMETERS : "Admin Updates"
+    RBAC_USERS ||--o{ IMMUTABLE_EXECUTION_LEDGER : "Trader Executes"
+    RBAC_USERS ||--o{ SECURITY_AUDIT_LOG : "Generates Events"
+    
+    %% Note: The TimescaleDB tables run independently and don't physically join 
+    %% with the Operations tables to prevent locking during high-frequency ingestion.
 ```
 
-## 4. The `Operations API` Schema (PostgreSQL)
-This structure governs the RBAC security, the Phase 1 Manual Logging, and the VaR circuit breaker configurations.
+## 3. The `Tick Ingestion Engine` Schema (TimescaleDB)
+This is the lifeblood of the quantitative engine. Standard PostgreSQL `B-Tree` indexes degrade exponentially when ingesting millions of rows per day. We explicitly utilize the `TimescaleDB` extension to structure these as **Hypertables**.
 
-### Table: `rbac_users`
-```sql
-CREATE TABLE rbac_users (
-    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    hashed_password VARCHAR(255) NOT NULL,
-    -- Strict RBAC Enforcement
-    role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'TRADER', 'ANALYST')),
-    -- Security circuit breaker
-    is_active BOOLEAN DEFAULT TRUE, 
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
+### A. The Level 1 Trade History (`l1_tick_history`)
+*   **Purpose:** Stores every physical trade executed on the exchange (Tick data). Used for calculating historical VWAP profiles and real-time GARCH $\sigma$-bands.
+*   **The Schema Engineering:**
+    ```sql
+    CREATE TABLE l1_tick_history (
+        time TIMESTAMPTZ NOT NULL,
+        symbol VARCHAR(20) NOT NULL, 
+        exchange VARCHAR(30) NOT NULL, 
+        price DECIMAL(24,8) NOT NULL,
+        volume DECIMAL(24,8) NOT NULL,
+        side VARCHAR(4) NOT NULL CHECK (side IN ('BUY', 'SELL')),
+        exchange_trade_id VARCHAR(100) NOT NULL, 
+        is_scrubbed BOOLEAN DEFAULT FALSE,
+        PRIMARY KEY (time, symbol, exchange, exchange_trade_id)
+    );
 
-### Table: `system_risk_parameters`
-The global variables that strictly govern the Execution Engine logic (Strategy 05). The Python quantitative engine polls this table every 60 seconds to refresh its hard mathematical limits.
-
-```sql
-CREATE TABLE system_risk_parameters (
-    parameter_id VARCHAR(50) PRIMARY KEY, -- e.g., 'MAX_PORTFOLIO_VAR'
-    parameter_value DECIMAL(10,4) NOT NULL, -- e.g., 0.0500 (5%)
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    -- The admin who mathematically changed the system threshold
-    updated_by UUID REFERENCES rbac_users(user_id) 
-);
-```
-
-### Table: `immutable_execution_ledger` (The "Ground Truth")
-The critical table serving as the origin logging for Phase 1 Manual Trading (Strategy 10) and the foundational training dataset for Phase 8 Machine Learning Models.
-
-```sql
-CREATE TABLE immutable_execution_ledger (
-    -- Strategy 05 Reconciliation Requirement
-    client_oid UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
+    -- 1. Create the Hypertable (Partitions physical disk space by day)
+    SELECT create_hypertable('l1_tick_history', 'time', chunk_time_interval => INTERVAL '1 day');
     
-    -- When the human pushed the button, or the SOR fired
-    execution_time TIMESTAMPTZ NOT NULL, 
-    
-    symbol VARCHAR(20) NOT NULL,
-    action VARCHAR(20) NOT NULL CHECK (action IN ('LONG_ENTRY', 'LONG_EXIT', 'SHORT_ENTRY', 'SHORT_EXIT')),
-    
-    -- Expected vs Reality (For SQN Tracking)
-    theoretical_price DECIMAL(24,8) NOT NULL,
-    actual_fill_price DECIMAL(24,8) NOT NULL,
-    fill_size DECIMAL(24,8) NOT NULL,
-    
-    -- 'MANUAL_PHASE_1' vs 'ALGO_COINTEGRATION'
-    source_origin VARCHAR(50) NOT NULL, 
-    -- If a human intervened or took the original trade
-    author_user_id UUID REFERENCES rbac_users(user_id), 
-    
-    -- The Macro State when the transaction fired (Model 03)
-    hmm_macro_regime_state INTEGER, 
-    
-    -- Order State Machine tracking
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'ACKNOWLEDGED', 'PARTIALLY_FILLED', 'FILLED', 'REJECTED'))
-);
+    -- 2. Create a secondary index for fast querying by specific asset
+    CREATE INDEX ix_symbol_time ON l1_tick_history (symbol, time DESC);
+    ```
+*   **The Relationship Logic:** The backend Python application polls this table via standard SQL (e.g., `SELECT * WHERE symbol = 'BTC' ORDER BY time DESC LIMIT 5000`) and passes the NumPy array into the math models. 
 
--- Crucial: This table is Immutable via PostgreSQL Triggers.
--- Once an execution order is written to this ledger, it CANNOT be updated or deleted by ANY User or API logic.
--- If an order fails, a NEW row is appended logging the failure. We must perfectly preserve the failure history for ML training.
-```
+### B. The Level 2 Order Book Depth (`l2_snapshot`)
+*   **Purpose:** Stores snapshots of the L2 resting liquidity. Crucial for the proprietary Order Book Imbalance (OBI) toxicity sensors (Model 15).
+*   **Data Types:** Limit order depth is highly variable. We utilize PostgreSQL's binary `JSONB` format to efficiently store the bid/ask arrays without requiring 100 separate columns.
+    ```sql
+    CREATE TABLE l2_orderbook_snapshot (
+        time TIMESTAMPTZ NOT NULL,
+        symbol VARCHAR(20) NOT NULL,
+        exchange VARCHAR(30) NOT NULL,
+        bids JSONB NOT NULL,
+        asks JSONB NOT NULL,
+        obi_ratio DECIMAL(10,4), -- Pre-calculated by Python before insertion
+        PRIMARY KEY (time, symbol, exchange)
+    );
+    SELECT create_hypertable('l2_orderbook_snapshot', 'time', chunk_time_interval => INTERVAL '1 day');
+    -- Supports GIN indexing on the JSONB if we need to query specific price levels later
+    ```
 
-## 5. Implementation Sequence for Phase 1
-Before building the Python algorithms, we must perform the exact following structural initialization:
-1.  Establish the `docker-compose.yml` to spin up the official TimescaleDB container image (not standard Postgres).
-2.  Use a robust migration manager (e.g., `Alembic` for Python or `Prisma` for Node) to apply the aforementioned SQL structurally into the live volume.
-3.  Ensure the Python application strictly casts all floating-point variables to Python `Decimal` classes *before* attempting `asyncpg` insertion.
+## 4. The Operations API Schema (PostgreSQL)
+This domain controls the system's brain and tracks the humans. It is highly normalized (3NF) to ensure absolute data integrity.
+
+### A. The RBAC Matrix (`rbac_users` & `system_risk_parameters`)
+*   **Purpose:** To cryptographically enforce who can change the math parameters (Admins) versus who can solely deploy capital (Traders).
+*   **The Relationship:** A `One-to-Many` relationship exists between `rbac_users` and `system_risk_parameters`. The database physically records *which* Admin ID altered the Master VaR limit.
+    ```sql
+    -- If Admin 'A' sets Max Leverage to 3x, the updated_by column permanently 
+    -- links to Admin 'A's UUID.
+    ALTER TABLE system_risk_parameters 
+    ADD CONSTRAINT fk_admin_user 
+    FOREIGN KEY (updated_by) REFERENCES rbac_users(user_id);
+    ```
+
+### B. The Immutable Execution Ledger (`immutable_execution_ledger`)
+*   **Purpose:** The central nervous system for Phase 1 manual trading and the future training ground for Phase 8 Machine Learning (XGBoost).
+*   **Data Integrity (The Golden Rule):** This table is structurally immutable. If a trade is executed, it is mathematically permanent. We enforce this via a database-level standard SQL Trigger.
+    ```sql
+    -- 1. The Trigger Function
+    CREATE OR REPLACE FUNCTION prevent_ledger_mutation()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        RAISE EXCEPTION 'CRITICAL: The Immutable Execution Ledger cannot be updated or deleted.';
+        RETURN NULL;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    -- 2. Applying the Trigger to block UPDATEs and DELETEs
+    CREATE TRIGGER trg_immutable_ledger
+    BEFORE UPDATE OR DELETE ON immutable_execution_ledger
+    FOR EACH ROW EXECUTE FUNCTION prevent_ledger_mutation();
+    ```
+*   **SQN Tracking (Measuring Edge):** The columns `theoretical_price` and `actual_fill_price` are mandated. By querying the `DECIMAL` difference between these two columns across 1,000 trades, the backend instantly calculates the system's aggregate slippage degradation.
+
+### C. The Authorization Ledger (`security_audit_log`)
+*   **Purpose:** The system is managing proprietary capital. Complete operational transparency is required. This table acts as a Black Box flight recorder.
+*   **Foreign Key Dependencies:** Every row ties back to an `rbac_users.user_id`. The Node.js Operations API middleware automatically appends to this table anytime an endpoint like `/api/admin/killswitch` is hit, storing the payload data perfectly in the `metadata` JSONB column.
+
+## 5. Architectural Separation of Concerns
+To guarantee maximum system throughput, the TimescaleDB hypertable arrays (`l1_tick_history`) are NEVER joined (`JOIN`) against the relational tracking tables (`rbac_users`). 
+
+The Python Quantitative Logic Engine strictly connects to the `TimescaleDB` domain to run its fast NumPy mathematics, while the Node.js API Operations Server connects primarily to the Relational Domain to serve the React Dashboard. This architectural barrier prevents a massive frontend query by a Data Analyst from accidentally locking the tables the Execution Router needs to verify its active `clientOid`.
