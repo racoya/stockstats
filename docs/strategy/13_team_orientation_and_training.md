@@ -24,15 +24,15 @@ The formula above is a blunt instrument. It evaluates a strategy in a theoretica
 
 #### A. The Blind Spot of Variance (The "Smoothness" Problem)
 *   **The Problem:** Strategy A makes $+0.2R$ on every trade. Strategy B makes $+10R$ once, and loses $-0.5R$ twenty times. Basic $E(R)$ says they are identical. In reality, Strategy B's variance will trigger a margin call before the big win ever happens.
-*   **Our Solution (Model 05 - SQN):** We don't just calculate $E(R)$; we calculate the **System Quality Number (SQN)**, which penalizes "bumpy" equity curves by dividing the Expected Value by the Standard Deviation of the results. 
+*   **Our Solution (Model 05 - SQN):** We don't just calculate $E(R)$; we calculate the **[System Quality Number (SQN)](../models/05_expectancy_and_sqn.md)**, which penalizes "bumpy" equity curves by dividing the Expected Value by the Standard Deviation of the results.
 
 #### B. The Blind Spot of Averages (The Black Swan Problem)
 *   **The Problem:** The formula relies on "Average Loss." Financial markets possess "Fat Tails." During a flash crash, stop-losses are skipped due to zero liquidity. Your "Average Loss" suddenly becomes a "Catastrophic Loss," instantly turning your $E(R)$ deeply negative.
-*   **Our Solution (Models 06 & 12 - Copulas & VaR):** We assume the "Average Loss" lies to us. We use **Clayton Copulas** to mathematically model the probability of an extreme correlation crash (e.g., BTC and ETH both dropping 15% simultaneously) and override execution before the event hits.
+*   **Our Solution (Models 06 & 12 - Copulas & VaR):** We assume the "Average Loss" lies to us. We use **[Clayton Copulas](../models/06_copula_kelly_sizing.md)** to mathematically model the probability of an extreme correlation crash (e.g., BTC and ETH both dropping 15% simultaneously) and override execution before the event hits via our **[VaR Kill Switch](../models/12_value_at_risk_var.md)**.
 
 #### C. The Blind Spot of Time (Capital Velocity)
 *   **The Problem:** Strategy A has an $E(R)$ of $+1.0R$ per trade, but only trades once a month. Strategy B has an $E(R)$ of $+0.1R$ per trade, but trades 50 times a day. If you only look at the basic $E(R)$ *per trade*, Strategy A looks ten times better.
-*   **Our Solution (Model 06 - Kelly Sizing):** We evaluate edges based on **Compound Annual Growth Rate (CAGR)**, not just per-trade $E(R)$. Strategy B is vastly superior because mathematically, turning capital over 50 times a day at $+0.1R$ compoundingly generates massive alpha over a month compared to a single $+1.0R$ event. We use the **Fractional Kelly Criterion** to mathematically size these high-velocity trades to maximize that compound growth without risking statistical ruin.
+*   **Our Solution (Model 06 - Kelly Sizing):** We evaluate edges based on **Compound Annual Growth Rate (CAGR)**, not just per-trade $E(R)$. Strategy B is vastly superior because mathematically, turning capital over 50 times a day at $+0.1R$ compoundingly generates massive alpha over a month compared to a single $+1.0R$ event. We use the **[Fractional Kelly Criterion](../models/06_copula_kelly_sizing.md)** to mathematically size these high-velocity trades to maximize that compound growth without risking statistical ruin.
 
 
 ---
@@ -42,12 +42,12 @@ You do not need a PhD in statistics to write the code, but you must understand *
 
 ### 2.1 Volatility & GARCH (Model 01)
 *   **The Concept:** Standard indicators like Bollinger Bands are fundamentally flawed because they assume market volatility is static. It is not. Volatility "clusters" (calm periods are followed by violent periods).
-*   **Our Solution:** We use **GARCH(1,1)**. It analyzes the last 500 physical trades (ticks) and mathematically predicts what the volatility will be *in the next 5 minutes*. We only buy when the price physically breaks outside these dynamic, self-adjusting bands.
+*   **Our Solution:** We use **[GARCH(1,1)](../models/01_garch_volatility.md)**. It analyzes the last 500 physical trades (ticks) and mathematically predicts what the volatility will be *in the next 5 minutes*. We only buy when the price physically breaks outside these dynamic, self-adjusting bands.
 
 ### 2.2 Statistical Arbitrage & Cointegration (Model 02)
 *   **The Concept:** "Pairs Trading." Instead of guessing if Bitcoin (BTC) will go up or down, we look at the relationship between BTC and Ethereum (ETH). 
 *   **The Math:** Historically, these two assets move together. If BTC suddenly shoots up but ETH stays flat, the "Spread" between them has widened. 
-*   **Our Solution:** We calculate a **Z-Score** of that spread. If the Z-Score hits $+2.5$, we mathematically know the spread is broken. We Short BTC and Buy ETH simultaneously. We don't care if the whole market crashes; we only care that the *relationship* returns back to zero.
+*   **Our Solution:** We calculate a **[Z-Score via Cointegration](../models/02_cointegration_arb.md)** of that spread. If the Z-Score hits $+2.5$, we mathematically know the spread is broken. We Short BTC and Buy ETH simultaneously. We don't care if the whole market crashes; we only care that the *relationship* returns back to zero.
 
 ### 2.3 The Visual Flow of a Trade
 ```mermaid
@@ -99,15 +99,15 @@ We use TypeScript and React (Next.js) for the human command center. It visualize
 
 Making money is secondary. **Not losing capital to bugs or flash crashes is our primary directive.**
 
-### 4.1 The VWAP Slicer (Model 04)
+### 4.1 The VWAP Slicer ([Model 04](../models/04_vwap_liquidity.md))
 If the algorithm decides to buy $\$100,000$ of Ethereum, we **never** send a $\$100k$ market order. That would crush the exchange order book and we would lose $2\%$ immediately to slippage.
 *   **Our Protocol:** The system slices the $\$100k$ block into twenty $\$5,000$ micro-orders over 5 minutes. This hides our structural footprint from predators.
 
-### 4.2 The UUID State Machine (Model 13)
+### 4.2 The UUID State Machine ([Model 13](../models/13_state_machine_reconciliation.md))
 *   "Zombie Orders" destroy hedge funds. If we send an order, and my internet drops, did the order fill? Do we send it again?
 *   **Our Protocol:** Every order is tagged with a cryptographic `clientOid` (UUID). The system operates a strict state machine (`PENDING` -> `FILLED`). If the API drops, our "Interrogator" loop aggressively pings the exchange using that exact UUID to find out exactly what happened before authorizing any new capital.
 
-### 4.3 Value at Risk (VaR) Kill Switch (Model 12)
+### 4.3 Value at Risk (VaR) Kill Switch ([Model 12](../models/12_value_at_risk_var.md))
 If a Black Swan event occurs (e.g., an unexpected global crisis), mathematical correlations go to $1.0$. Everything crashes together.
 *   **Our Protocol:** The master VaR algorithm constantly calculates our total portfolio risk. If it detects a structural breach (drawdown $> 5\%$), it physically severs our API connections to the exchange, cancels all resting orders, and alerts the team via Slack.
 
@@ -115,9 +115,9 @@ If a Black Swan event occurs (e.g., an unexpected global crisis), mathematical c
 
 ## Conclusion & Next Steps
 We are building a machine that expects the environment to be actively hostile. 
-1.  **We clean the data (Hampel Filters):** We mathematically scrub out "rogue" exchange ticks caused by API errors so our models aren't triggered by fake data.
-2.  **We prove the math (Cointegration):** We don't guess direction; we wait for the statistical spread between two highly correlated assets to break, knowing it is mathematically bound to revert.
-3.  **We test the risk (Copulas):** Before executing that edge, we scan the entire portfolio for hidden correlation traps to avoid buying into a systemic "Black Swan" flash crash.
-4.  **We hide the execution (VWAP Slicers):** When we deploy capital, we slice large orders into tiny micro-fractions to prevent predatory HFTs from seeing our size and stealing our alpha via slippage.
+1.  **We clean the data ([Hampel Filters](../models/14_data_scrubbing_hampel.md)):** We mathematically scrub out "rogue" exchange ticks caused by API errors so our models aren't triggered by fake data.
+2.  **We prove the math ([Cointegration](../models/02_cointegration_arb.md)):** We don't guess direction; we wait for the statistical spread between two highly correlated assets to break, knowing it is mathematically bound to revert.
+3.  **We test the risk ([Copulas](../models/06_copula_kelly_sizing.md)):** Before executing that edge, we scan the entire portfolio for hidden correlation traps to avoid buying into a systemic "Black Swan" flash crash.
+4.  **We hide the execution ([VWAP Slicers](../models/04_vwap_liquidity.md)):** When we deploy capital, we slice large orders into tiny micro-fractions to prevent predatory HFTs from seeing our size and stealing our alpha via slippage.
 
-You are now conceptually calibrated to the STOCKSTATS architecture. Your immediate next step is to review `task.md` and the **Sprint 1 Implementation Plan**, where we begin physically scaffolding the TimescaleDB and Redis pipelines. 
+You are now conceptually calibrated to the STOCKSTATS architecture. Your immediate next step is to review `task.md` and the **[Sprint 1 Implementation Plan](12_execution_sprints_and_tickets.md)**, where we begin physically scaffolding the TimescaleDB and Redis pipelines.
