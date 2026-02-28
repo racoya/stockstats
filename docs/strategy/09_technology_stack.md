@@ -26,7 +26,7 @@ TypeScript provides the strict architectural type safety required for operationa
 ### C. The Conscious Exclusion of Java / C++
 While C++ and JVM-tuned Java are the dominant languages in traditional High-Frequency Trading (HFT) Market Making firms, they have been aggressively excluded from the STOCKSTATS architecture for explicit strategic reasons:
 *   **Latency vs. Strategy Execution:** STOCKSTATS is fundamentally a *Statistical Arbitrage* and *Mean Reversion* engine, not a pure HFT nanosecond market-making engine. We generate edges measured in seconds/minutes, not microseconds. The $\approx 100$ microsecond execution advantage of a monolithic C++ engine is mathematically negated by the standard $20$ millisecond API latency of global cryptocurrency exchanges like Binance.
-*   **Quantitative Engineering Friction:** The Python ecosystem (`pandas`, `numpy`, `xgboost`) allows quantitative researchers to conceptualize, backtest, and deploy a complex math model (like Copula dependency) in 48 hours. Translating that same structural concept into C++ requires massive boilerplate code and mechanical engineering overhead, destroying the strategy iteration $R&D$ cycle.
+*   **Quantitative Engineering Friction:** The Python ecosystem (`pandas`, `numpy`, `xgboost`) allows quantitative researchers to conceptualize, backtest, and deploy a complex math model (like Copula dependency) in 48 hours. Translating that same structural concept into C++ requires massive boilerplate code and mechanical engineering overhead, destroying the strategy iteration R&D cycle.
 
 ## 3. The Tech Stack Breakdown
 
@@ -48,5 +48,5 @@ While C++ and JVM-tuned Java are the dominant languages in traditional High-Freq
 
 ## 4. DevOps & Production Architecture
 *   **Containerization:** Docker. Every isolated microservice must have its own strict `Dockerfile` to guarantee perfect mathematically parity between the Quant's local laptop and the live AWS production cluster.
-*   **Orchestration:** Docker Compose (Local Quantitative $R&D$) migrating to Kubernetes (K8s) or AWS ECS for live autonomous production.
+*   **Orchestration:** Docker Compose (Local Quantitative R&D) migrating to Kubernetes (K8s) or AWS ECS for live autonomous production.
 *   **CI/CD Isolation:** GitHub Actions. Every Git push to the `main` branch must physically trigger automated Python unit tests evaluating the mathematical models (e.g., ADF Stationarity, VWAP sizing) against static $2021$ mock data before a Docker deploy is structurally permitted.
