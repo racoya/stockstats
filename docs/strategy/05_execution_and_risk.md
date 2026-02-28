@@ -16,21 +16,21 @@ graph TD
 
     S("Mathematical Trade Signal Generated\n(e.g., Cointegration Z-Score breached)"):::signal
     
-    subgraph 1. Pre-Trade Risk Validation (The Gates)
+    subgraph "1. Pre-Trade Risk Validation (The Gates)"
         FatFinger{"Fat Finger / Capital Limit\n(< 5% Total Portfolio?)"}:::risk
         VaR{"Global VaR Check (Model 12)\n(Within 99% Tolerance?)"}:::risk
         Latency{"Heartbeat Monitor\n(API Delay < 50ms?)"}:::risk
         Toxicity{"L2 Toxicity Check (Model 15)\n(OBI Flow clean?)"}:::risk
     end
 
-    subgraph 2. The Smart Order Router
+    subgraph "2. The Smart Order Router"
         UUID["Generate Idempotent clientOid\n(Model 13 UUID Determinism)"]:::exec
         Algo{"Algorithm Selection"}:::exec
         VWAP["VWAP Slicer (Model 04)"]:::exec
         TWAP["TWAP Slicer"]:::exec
     end
 
-    subgraph 3. Post-Trade Reconciliation Engine
+    subgraph "3. Post-Trade Reconciliation Engine"
         Timeout{"HTTP 504 Timeout or Socket Drop?"}:::fail
         Rescue["State Machine Rescue (Model 13)\nQuery Exchange explicitly by clientOid"]:::fail
         Slippage["Calculate Realized Slippage Delta\n(Theoretical E(R) vs Actual Fill)"]:::exec
