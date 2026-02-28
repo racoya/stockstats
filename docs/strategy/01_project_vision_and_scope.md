@@ -14,12 +14,16 @@ Throughout all phases, STOCKSTATS acts as the central hub for the proprietary tr
 ### A. The Proprietary Edge
 The logic engine, mathematical models, and latency-sensitive execution algorithms are strictly internal. The infrastructure must be aggressively secure, self-hosted (or securely managed in isolated cloud VPCs), and built fundamentally to protect our algorithmic "edge." Third-party dependencies are minimized to prevent intellectual property leakage.
 
-### B. The $E(R) > 0$ Intelligence Engine
+### B. Core Operational Directives
+5.  **Latency is Guaranteed:** The architectural baseline is that the system will inevitably experience network vacuums (e.g., HTTP 504 timeouts). Logic cascades must mathematically self-reconcile without structural decay.
+6.  **Shadow Mode is Mandatory:** Standard "Paper Trading" creates false expectations. The system must support a structural `SHADOW` mode that actively penalizes mock executions based on physical L2 liquidity depth and network latency to test new algorithms under realistic stress.
+
+### C. The $E(R) > 0$ Intelligence Engine
 The system does not guess. The absolute core of STOCKSTATS is the automated mathematical identification of structural market inefficiencies. 
 *   We rely entirely on advanced quantitative statistics: Generalized Autoregressive Conditional Heteroskedasticity (GARCH) for volatility, Augmented Dickey-Fuller (ADF) tests for stationary mean-reversion, and Clayton Copula matrices for systemic tail-risk correlation modeling.
 *   Every single trade is normalized to $1R$ (Initial Risk), and the system's survival is dictated by the System Quality Number (SQN).
 
-### C. Comprehensive Operational Desk Management
+### D. Comprehensive Operational Desk Management
 The system must function as an institutional-grade professional trading terminal for the team. This includes:
 *   Tracking exactly *which* user or *which* algorithm executed what trade.
 *   Performance metrics broken down per trader/algorithm (Win Rate, $R$-Multiple distributions, Drawdown depth).
