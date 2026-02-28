@@ -25,9 +25,11 @@ graph TD
 
     subgraph "2. The Smart Order Router"
         UUID["Generate Idempotent clientOid\n(Model 13 UUID Determinism)"]:::exec
+        Toggle{"Execution Mode (Strategy 14)\n(LIVE vs SHADOW?)"}:::exec
         Algo{"Algorithm Selection"}:::exec
         VWAP["VWAP Slicer (Model 04)"]:::exec
         TWAP["TWAP Slicer"]:::exec
+        Shadow["Simulate Local Fill\n(Walk Redis L2 Depth)"]:::exec
     end
 
     subgraph "3. Post-Trade Reconciliation Engine"
@@ -42,7 +44,12 @@ graph TD
     Latency -- Pass --> Toxicity
     
     Toxicity -- Pass --> UUID
-    UUID --> Algo
+    UUID --> Toggle
+    
+    Toggle -- "SHADOW" --> Shadow
+    Shadow -- "Mock Fill Complete" --> Slippage
+    
+    Toggle -- "LIVE" --> Algo
     Algo -- High Urgency (Stop Loss) --> TWAP
     Algo -- Low Urgency (Accumulation) --> VWAP
     

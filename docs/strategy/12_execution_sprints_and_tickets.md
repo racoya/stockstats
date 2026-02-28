@@ -93,6 +93,9 @@ This document must act as the primary local checklist during the entire engineer
 - [ ] **Ticket 5.4: VWAP Execution Slicer (Model 04)**
   - **Priority:** High
   - **Action:** Build the mathematical Time-Weighted and Volume-Weighted slicing protocols. The algorithm must automatically dissect a $\$100k$ parent block into $\$5k$ micro-orders to hide intentions from the L2 order book.
+- [ ] **Ticket 5.5: Build Shadow Execution Simulator (Strategy 14)**
+  - **Priority:** High
+  - **Action:** Implement the `ShadowExecutionEngine` class in Python. It must actively bypass CCXT, poll the local Redis L2 book to calculate mock slippage volume, delay the logic via network ping values, and execute the mock trade purely against the `shadow_execution_ledger` table.
 
 ---
 

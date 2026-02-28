@@ -22,7 +22,8 @@ With mathematically sterile data flowing, we build the core "brain" to prove our
     *   Code the baseline linear models (GARCH volatility, ADF Cointegration, OLS spread arrays).
     *   Implement structural overlays (Hidden Markov Models for macro regime detection).
     *   Build the Backtesting Engine utilizing the un-corrupted Phase 1 Point-in-Time data.
-*   **Completion Criteria:** The system successfully identifies historical pricing anomalies and mathematically proves a baseline $Expectancy (R) > 0$ after friction.
+    *   **Forward-Test via Shadow Mode (Strategy 14):** Deploy the compiled models purely against simulated local capital, strictly enforcing the mathematical execution penalties (real-time order book slippage and network latency) to prove out-of-sample viability.
+*   **Completion Criteria:** The system successfully identifies historical pricing anomalies and mathematically proves a baseline $Expectancy (R) > 0$ after simulated real-world friction.
 
 ## Phase 3: The Grafana Command Center & Manual Execution
 To avoid the "Big Bang" trap of spending 100+ hours building a custom React UI before taking a live physical trade, we embrace pragmatism. The system acts as a radar; the human acts as the execution weapon.

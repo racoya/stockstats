@@ -17,7 +17,8 @@ The backend is permanently decoupled into 4 absolutely independent, Dockerized m
 *   **Compute/Isolation:** Requires maximum CPU multi-threading and RAM availability for linear algebra (NumPy/SciPy/Numba). It has zero exposure to external network requests or the public internet. It strictly outputs raw JSON `Signal_Authorized` payloads internally.
 
 ### C. The Execution & Routing Engine (Service 3)
-*   **Role:** The "Hands." Consumes isolated Trade Signals from Service 2. It rigorously validates them against the dynamic Parametric VaR limit (Model 12), fractionalizes the size via the Kelly Criterion, assesses L2 OBI Toxicity (Model 15), and physically routes them to the APIs.
+*   **Role:** The "Hands." Consumes isolated Trade Signals from Service 2. It rigorously validates them against the dynamic Parametric VaR limit (Model 12), fractionalizes the size via the Kelly Criterion, and assesses L2 OBI Toxicity (Model 15).
+*   **The Shadow Toggle (Strategy 14):** Before any execution, this engine explicitly reads the runtime `STOCKSTATS_EXECUTION_MODE`. If `"LIVE"`, it signs the `POST` payload via CCXT. If `"SHADOW"`, it bypasses external networking, hands the payload to the local `ShadowExecutionEngine`, and actively queries Redis to enforce localized mathematical slippage penalties.
 *   **Security:** This is the *only* physical service that possesses the decrypted private exchange API execution keys.
 
 ### D. The Operations REST API (Service 4)

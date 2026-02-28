@@ -80,6 +80,14 @@ erDiagram
         decimal slippage_delta "Execution vs Theoretical (24,8)"
     }
 
+    SHADOW_EXECUTION_LEDGER {
+        uuid shadow_oid PK "Strategy 14 Sandbox Ledger"
+        timestamptz execution_time
+        varchar(50) strategy_id FK
+        decimal simulated_fill_price "Calculated post-slippage"
+        decimal simulated_latency_ms "API ping penalty"
+    }
+
     %% Defining the Relationships
     RBAC_USERS ||--o{ SYSTEM_RISK_PARAMETERS : "Admin Updates"
     RBAC_USERS ||--o{ IMMUTABLE_EXECUTION_LEDGER : "Trader Executes"
@@ -170,7 +178,24 @@ This domain connects the Execution execution layer back to the mathematical mode
     FOR EACH ROW EXECUTE FUNCTION prevent_ledger_deletion();
     ```
 
-### C. SQN & Deflated Sharpe Tracking (Model 05 & 11)
+### C. The Shadow Execution Ledger (Strategy 14 Simulator)
+*   **Purpose:** Forward-testing mathematically exact mock trades. Structurally separated from `immutable_execution_ledger` to guarantee fake $PnL$ does not pollute Phase 8 XGBoost ML training data sets.
+    ```sql
+    CREATE TABLE shadow_execution_ledger (
+        shadow_oid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        execution_time TIMESTAMPTZ NOT NULL,
+        strategy_id VARCHAR(50) NOT NULL,
+        
+        theoretical_price DECIMAL(24,8) NOT NULL,
+        simulated_fill_price DECIMAL(24,8) NOT NULL, -- Calculated by walking the Redis L2 order book
+        simulated_latency_ms INTEGER NOT NULL,        -- Ping delay penalty applied
+        fill_size DECIMAL(24,8) NOT NULL,
+        
+        status VARCHAR(20) NOT NULL CHECK (status IN ('SIMULATED_FILL', 'SIMULATED_REJECT'))
+    );
+    ```
+
+### D. SQN & Deflated Sharpe Tracking (Model 05 & 11)
 *   **Purpose:** We must formally track algorithm decay over time.
     ```sql
     CREATE TABLE strategy_performance_metrics (

@@ -100,3 +100,4 @@ In Phase 1, the system does not automatically know that a physical trade occurre
 3.  **Respect the HMM Regime:** Never execute a mean-reverting strategy during a hard HMM trend state.
 4.  **Veto Toxic Flow:** If the OBI dial is red, take your hands off the keyboard. Wait for the HFT engines to turn off.
 5.  **Log Everything:** A profitable trade that isn't logged in the Immutable PostgreSQL Ledger is useless to the quantitative system's long-term evolution.
+6.  **Isolate Shadow Executions (Strategy 14):** When an algorithm is in the forward-testing incubator, you must explicitly flag all manual mock executions as `SHADOW` in the UI to divert the row to the `shadow_execution_ledger`. Mingling paper-trading PnL with physical Ground Truth mathematically corrupts the Phase 8 Machine Learning dataset.

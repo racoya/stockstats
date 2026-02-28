@@ -57,6 +57,8 @@ stateDiagram-v2
     }
 ```
 
+*(Note: If the system is running in **Shadow Mode (Strategy 14)**, this entire external state machine is bypassed. The local engine simulates the payload against the Redis L2 book and writes directly to the `shadow_execution_ledger` as `SIMULATED_FILL` or `SIMULATED_REJECT`, completely sidestepping HTTP timeout risks).*
+
 ## 4. The Reconciliation Engine (The "UNKNOWN" Rescue Protocol)
 If a `PENDING_SUBMIT` order does not physically transition to `ACKNOWLEDGED` or `FILLED` within $N$ milliseconds (usually 2,500ms), the system aggressively overrides it into the `UNKNOWN` state.
 
