@@ -1,60 +1,130 @@
 # Deep Dive: Mathematical Expectancy & System Quality (SQN)
 
-## 1. The Flaw of Win Rates and Dollar PnL
-Retail traders evaluate systems based on absolute dollar Profit/Loss or Win Rate percentages. Quantitative systems reject both. 
-*   **Dollar PnL is arbitrary.** Making $1,000 means nothing unless we know how much capital was risked to make it.
-*   **Win Rate is deceptive.** A system that wins 90% of the time but loses $10 on a single loss to make $1 on a win carries a negative mathematical expectancy and will eventually blow up the account.
+## 1. The Core Problem: The Flaw of Win Rates and Dollar PnL
+Retail traders evaluate systems based on absolute dollar Profit/Loss or Win Rate percentages. Quantitative systems reject both metrics as statistically meaningless.
 
-## 2. The Solution: R-Multiples
-The foundation of the STOCKSTATS engine is the **Initial Risk ($1R$)**. Every single trade outcome is normalized to this value.
+*   **Dollar PnL is Arbitrary:** Making $1,000 means nothing unless we know how much capital was risked to make it. Making $1,000 while risking $10,000 is a terrible system (+0.1R). Making $1,000 while risking $100 is a Holy Grail system (+10R).
+*   **Win Rate is Deceptive:** A system that wins 90% of the time but loses $10 on its single loss to make $1 on its nine wins carries a negative mathematical expectancy. It will eventually blow up the account. (This is the classic "picking up pennies in front of a steamroller" short-volatility trap).
 
-1.  **Calculate $1R$:** \
-    $1R = |Entry\_Price - Stop\_Loss\_Price|$
-2.  **Calculate the Outcome (R-Multiple):** \
-    $R\_Multiple = \frac{Net\_Profit}{1R}$
+You cannot build a scalable quantitative engine on dollars or win rates. You need a normalized, scale-invariant unit of measurement.
 
-If a trade risks $500 (1R) and makes $1,500, the outcome is **+3R**.
-If a trade risks $10,000 (1R) and makes $30,000, the outcome is *also* **+3R**.
+## 2. The Solution: R-Multiples (Risk Units)
+The foundation of the STOCKSTATS execution engine is the **Initial Risk ($1R$)**. Every single trade outcome, regardless of the asset class or the nominal dollar size of the account, is normalized to this value.
 
-By stripping away the nominal dollar value, the quantitative engine evaluates the pure, unadulterated "Edge" of the mathematical signal.
+By mathematically stripping away the nominal dollar value, the quantitative engine evaluates the pure, unadulterated "Edge" of the statistical signal.
+
+### A. Defining $1R$
+$1R$ is the absolute maximum capital you are willing to lose if the algorithm is wrong and the trade is stopped out.
+
+$$ 1R = |Entry\_Price - Stop\_Loss\_Price| \times Position\_Size $$
+
+*   *Note: In the Execution Engine, the Position Size is derived dynamically using Copulas and fractional Kelly sizing (Model 06) so that $1R$ always equals a fixed percentage of the total portfolio equity (e.g., exactly 1.00% of the account).*
+
+### B. Calculating the R-Multiple Outcome
+Once a trade concludes, the result is divided by the initial risk.
+
+$$ R\_Multiple = \frac{Net\_Realized\_Profit}{1R} $$
+
+*   If a trade risks $500 ($1R$) and makes $1,500, the outcome is **+3.0R**.
+*   If a trade risks $10,000 ($1R$) and makes $30,000, the outcome is *also* **+3.0R**.
+*   If a trade hits its stop loss and loses its full risk amount with zero slippage, the outcome is **-1.0R**.
 
 ## 3. Mathematical Expectancy ($E(R)$)
-Expectancy answers one question: *On average, how many R-multiples does this specific algorithm win per trade over a large sample size?*
+Expectancy answers one simple question: *Over a large sample size of 100+ trades, how many R-multiples does this specific algorithm win per single trade execution?*
 
-### The Equation
-$$ E(R) = (P_w \times \overline{W_R}) - (P_l \times \overline{L_R}) $$
+### The Master Equation
+$$ E(R) = (P_w \times \overline{W_R}) - (P_l \times |\overline{L_R}|) $$
 
-*   $P_w$: Probability of Winning (Win Rate)
-*   $\overline{W_R}$: Average Winning R-Multiple
-*   $P_l$: Probability of Losing (Loss Rate)
-*   $\overline{L_R}$: Average Losing R-Multiple (By definition, strict risk management ensures this is always approx 1.0)
+*   $P_w$: Probability of Winning (Win Rate, e.g., 0.40 or 40%)
+*   $\overline{W_R}$: Average Winning R-Multiple (e.g., +2.5R)
+*   $P_l$: Probability of Losing (Loss Rate, e.g., 0.60 or 60%)
+*   $\overline{L_R}$: Average Losing R-Multiple (Assuming strict risk management, this is usually near -1.0R)
 
-**The Mandate:** Every active algorithm in the STOCKSTATS platform must maintain a rolling $E(R) \ge 0.1$ factoring in all friction (spread, slippage, exchange fees). If an algorithm drops below this threshold, it is automatically paused.
+*Example Calculation:*
+$$ E(R) = (0.40 \times 2.5) - (0.60 \times 1.0) = 1.0 - 0.6 = +0.40R $$
+This algorithm generates +0.40R per trade. If we are risking 1% of our account per trade ($1R = 1\%$), we mathematically expect to grow the account by 0.4% every time the algorithm fires a signal, regardless of whether that specific sequential trade wins or loses.
+
+### The Execution Mandate
+**Every Strategy Pod in the STOCKSTATS platform must maintain a rolling $E(R) > 0.15$ factoring in all friction (spread, maximum slippage, and exchange taker fees).** 
+If the trailing 100-trade $E(R)$ drops below $0.15$, the state machine automatically halts the strategy.
 
 ## 4. System Quality Number (SQN)
-A system with a positive $E(R)$ can still be un-tradable if the variance (the wild swings between huge wins and huge losses) is too high. 
+A system with a positive $E(R)$ can still be un-tradable if the variance (the wild swings between huge wins and huge losses) is too high. High variance causes massive drawdowns that trigger global VaR Kill Switches.
 
-To measure the "smoothness" and reliability of the edge, we calculate the System Quality Number (SQN), developed by Dr. Van Tharp. 
+To measure the "smoothness" and reliability of the statistical edge, we calculate the System Quality Number (SQN), developed by Dr. Van Tharp. 
 
 ### The Equation
+SQN measures the relationship between the Expectancy of the system and the Standard Deviation of its returns, normalized by the frequency of trades.
+
 $$ SQN = \frac{\sqrt{N} \times E(R)}{\sigma_R} $$
 
-*   $\sqrt{N}$: The square root of the number of trades in the sample (Velocity/Frequency).
+*   $\sqrt{N}$: The square root of the number of trades in the sample (Velocity/Frequency). A system that trades 1,000 times a year is mathematically more reliable than one that trades 10 times. (Note: To normalize SQN for comparison, $N$ is often capped at 100).
 *   $E(R)$: The Expectancy calculated above.
-*   $\sigma_R$: The Standard Deviation of all the R-multiples generated by the system (Variance).
+*   $\sigma_R$: The Standard Deviation of the entire array of R-multiples generated by the system (the Variance). 
 
-### The Logic Matrix
-*   **SQN < 1.6:** Poor. System is turned off. The variance is too high.
+### The Logic Matrix (For N=100)
+STOCKSTATS grades every sub-algorithm using this table:
+*   **SQN < 1.6:** Poor / Un-tradable. Variance is too high or Expectancy is too low. Engine shuts down routing.
 *   **SQN 1.6 - 2.0:** Average. Tradable, but requires minimal leverage.
-*   **SQN 2.0 - 3.0:** Excellent. The system is highly reliable.
-*   **SQN > 3.0:** Holy Grail. The equity curve is virtually a straight line up.
+*   **SQN 2.0 - 3.0:** Excellent. The system is highly reliable and smooth.
+*   **SQN > 3.0:** Holy Grail. The equity curve is virtually a straight line. Maximum leverage authorized.
+
+```mermaid
+graph TD
+    classDef formula fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef check fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef pass fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef fail fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Trade("Trade Completed (JSON Fill Data)")
+    CalcR["Calculate R-Multiple\nNet_PnL / 1R"]:::formula
+    
+    UpdateE["Update Rolling Expectancy E(R)"]:::formula
+    UpdateSQN["Calculate System Quality Number (SQN)"]:::formula
+    
+    Trade --> CalcR --> UpdateE --> UpdateSQN
+    
+    EvalE{"Is E(R) > 0.15?"}:::check
+    EvalSQN{"Is SQN > 1.60?"}:::check
+    
+    UpdateSQN --> EvalE
+    EvalE -- "Yes" --> EvalSQN
+    
+    EvalE -- "No (Edge Lost)" --> Pause["AUTO-PAUSE ALGORITHM\n(Negative Expectancy)"]:::fail
+    
+    EvalSQN -- "Yes" --> Run["AUTHORIZE CONTINUED ROUTING\nSize Position via Kelly"]:::pass
+    EvalSQN -- "No (Too Volatile)" --> Pause2["AUTO-PAUSE ALGORITHM\n(Variance Too High)"]:::fail
+```
 
 ## 5. Excursion Optimization (MAE / MFE)
-To maximize $E(R)$, the system runs continuous background audits on closed trades to optimize the distance of the Stop Loss ($1R$).
+Most algorithms try to optimize their signals. STOCKSTATS optimizes its *structure*. To maximize $E(R)$ without changing the entry logic, the system uses continuous background audits on closed trades to optimize the physical location of the mathematical Stop Loss ($1R$).
 
-*   **Maximum Adverse Excursion (MAE):** The maximum paper loss a trade experienced before eventually closing as a winner.
-*   **Maximum Favorable Excursion (MFE):** The max paper profit a trade reached before reversing and closing.
+We analyze two metrics for every historical trade:
+*   **Maximum Adverse Excursion (MAE):** The maximum paper loss a trade experienced before eventually closing as a winner. It tells us how much "heat" the trade took.
+*   **Maximum Favorable Excursion (MFE):** The max paper profit a trade reached before reverting and hitting the stop loss. It tells us how much money was left on the table.
 
-**Optimization Loop:** If the system determines that historical winning trades have an average MAE of only $0.4R$ (meaning the price rarely goes against our entry by more than 40% of our stop loss distance), the algorithm will autonomously tighten future stop losses closer to the entry price. 
+### Structural Optimization Protocol
 
-Tightening the stop loss ($1R$) mathematically inflates the resulting $R-Multiple$ for the exact same target price, directly boosting the global Expectancy ($E(R)$) without changing the core signal generator.
+If the system analyzes the last 500 winning trades and plots their MAE distribution:
+
+1.  **Observation:** The algorithm notices that 95% of all historical winning trades never suffered a Maximum Adverse Excursion larger than $-0.4R$. (Meaning, if a trade went against us by more than 40% of our Stop Loss distance, it was ultimately destined to become a full $-1.0R$ loser).
+2.  **The Adjustment:** The algorithm's current stop loss is demonstrably too wide. It is absorbing unnecessary risk. The system autonomously tightens all future Stop Losses for this algorithm from $1.0R$ to $0.5R$.
+3.  **The Result:** By cutting the physical distance of the Stop Loss in half, the position size (number of shares) can mathematically be *doubled* while keeping the total portfolio dollar risk identical. 
+4.  **Expectancy Explosion:** For the exact same Target Price, the resulting R-Multiple on a winning trade just doubled from $+2.0R$ to $+4.0R$. The global $E(R)$ and SQN skyrocket, all without altering a single line of the GARCH or Cointegration entry criteria.
+
+```mermaid
+graph LR
+    classDef start fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef opt fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef result fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff;
+
+    Win("Winning Trade Database"):::start
+    Plot["Plot MAE Distribution\n(Where did the trade bounce?)"]:::opt
+    
+    Isolate["Identify 95th Percentile MAE\n(e.g., -0.4R)"]:::opt
+    Adjust["Tighten Stop Loss (1R) to -0.5R"]:::opt
+    
+    Result["R-Multiples Double\nExpectancy E(R) Surges"]:::result
+    
+    Win --> Plot --> Isolate --> Adjust --> Result
+```
