@@ -15,9 +15,24 @@ If you build a simple script that says `IF Price > Moving Average THEN Buy`, you
 2.  **Trading Costs (Friction):** Every trade costs money. You pay exchange fees (Taker Fees) and you pay the Bid/Ask spread. 
 
 ### 1.2 The Minimum Viable Edge ($E(R) > 0$)
-Every algorithm we write must mathematically prove it has a **Positive Expected Value**.
-*   **The Math:** $E(R) = (Win Rate \times Average Win) - (Loss Rate \times Average Loss) - Friction$
-*   **Our Goal:** STOCKSTATS algorithms are designed to win small amounts consistently (e.g., $55\%$ win rate) while rigorously controlling the $Average Loss$ using structural mathematics. 
+Every algorithm we write must mathematically prove it has a **Positive Expected Value**. This is the absolute, non-negotiable "Law of Gravity" in quantitative finance. If an algorithm cannot prove $E(R)>0$, it is gambling, not trading.
+*   **The Baseline Math:** $E(R) = (Win Rate \times Average Win) - (Loss Rate \times Average Loss) - Friction$
+*   Retail traders focus on *Win Rate*. Institutional quants focus on *Expectancy*. A 35% win rate strategy is wildly profitable if the average win is 4x the average loss.
+
+### 1.3 Why Basic $E(R)$ Fails (And How We Fix It)
+The formula above is a blunt instrument. It evaluates a strategy in a theoretical vacuum. Here is why amateur quant funds blow up using only that formula, and how STOCKSTATS is structurally designed to survive:
+
+#### A. The Blind Spot of Variance (The "Smoothness" Problem)
+*   **The Problem:** Strategy A makes $+0.2R$ on every trade. Strategy B makes $+10R$ once, and loses $-0.5R$ twenty times. Basic $E(R)$ says they are identical. In reality, Strategy B's variance will trigger a margin call before the big win ever happens.
+*   **Our Solution (Model 05 - SQN):** We don't just calculate $E(R)$; we calculate the **System Quality Number (SQN)**, which penalizes "bumpy" equity curves by dividing the Expected Value by the Standard Deviation of the results. 
+
+#### B. The Blind Spot of Averages (The Black Swan Problem)
+*   **The Problem:** The formula relies on "Average Loss." Financial markets possess "Fat Tails." During a flash crash, stop-losses are skipped due to zero liquidity. Your "Average Loss" suddenly becomes a "Catastrophic Loss," instantly turning your $E(R)$ deeply negative.
+*   **Our Solution (Models 06 & 12 - Copulas & VaR):** We assume the "Average Loss" lies to us. We use **Clayton Copulas** to mathematically model the probability of an extreme correlation crash (e.g., BTC and ETH both dropping 15% simultaneously) and override execution before the event hits.
+
+#### C. The Blind Spot of Time (Capital Velocity)
+*   **The Problem:** Strategy A has an $E(R)$ of $+1.0R$ but trades once a month. Strategy B has an $E(R)$ of $+0.1R$ but trades 50 times a day. Basic math says Strategy A is better.
+*   **Our Solution (Model 06 - Kelly Sizing):** Strategy B is vastly superior because of **Capital Velocity**. Turning capital over 50 times a day compoundingly generates massive alpha. We use the **Fractional Kelly Criterion** to mathematically size these high-velocity trades to maximize the compound growth rate without risking statistical ruin.
 
 ---
 
