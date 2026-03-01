@@ -283,6 +283,9 @@ Before any code touches the server, we must build the encrypted perimeter and lo
     ```
     *Execute `sudo systemctl restart ssh`.*
 
+4.  **Validation:** 
+    From the MacBook over external Wi-Fi (not Tailscale), attempt `ssh root@<public_ip>`. It **must** physically reject the connection. Attempt `ping 100.x.y.z`; it **must** return packets.
+
 ### Step 2: Linux Role-Based Access Control (RBAC)
 We never operate as `root`. We provision isolated engineering profiles.
 
@@ -302,6 +305,9 @@ We never operate as `root`. We provision isolated engineering profiles.
     chmod 600 ~/.ssh/authorized_keys
     exit
     ```
+
+3.  **Validation:**
+    Close all connections. From the MacBook, execute `ssh dev_quant@100.x.y.z`. You must drop immediately into the server shell without being prompted for a password. Execute `docker ps`; it must succeed without throwing a permissions error.
 
 ### Step 3: Directory Scaffolding & Secrets Injection
 The application architecture demands strict multi-directory separation.
@@ -344,6 +350,9 @@ The application architecture demands strict multi-directory separation.
     docker-volumes/
     .DS_Store
     ```
+
+4.  **Validation:**
+    Execute `ls -la /opt/stockstats/`. Verify the `.env` file exists and that the owner is explicitly `dev_quant:dev_quant`. Git commit a test file and verify the `.env` is structurally ignored by examining `git status`.
 
 ### Step 4: Provisioning the Dockerized Storage Layer
 We explicitly separate the databases into Linux containers with violent memory limitations to prevent OOM panics.
@@ -397,6 +406,11 @@ We explicitly separate the databases into Linux containers with violent memory l
     docker ps  # Verify healthy ports 5432 and 6379
     ```
 
+3.  **Validation:**
+    The containers must be alive. We must verify the port bindings mathematically.
+    *   Test TimescaleDB: `docker exec -it stockstats_timescaledb psql -U stockstats_admin -d stockstats -c "\dt"` (Should return relations or Empty).
+    *   Test Redis: `docker exec -it stockstats_redis redis-cli ping` (Should physically return `PONG`).
+
 ### Step 5: The Python Quantitative Core
 The system relies on LLVM compilers (`numba`). Version parity is legally binding.
 
@@ -421,6 +435,13 @@ The system relies on LLVM compilers (`numba`). Version parity is legally binding
     pip install -r requirements.txt
     ```
 
+4.  **Validation:**
+    We must verify the LLVM math compiler bound correctly to NumPy. Write a temporary test file.
+    ```bash
+    python3.11 -c "import numba; print(f'Numba injected successfully: {numba.__version__}')"
+    ```
+    (Must output `Numba injected successfully: 0.59.1` without throwing C-compiler errors).
+
 ### Step 6: The Remote Developer Verification (Final Application)
 The infrastructure is ready. Now the human engineer remotely boots the VS Code GUI interface.
 
@@ -437,6 +458,9 @@ The infrastructure is ready. Now the human engineer remotely boots the VS Code G
     *   Select "Connect to Host" $\rightarrow$ `StockStats-Basement`.
     *   Once connected, select "Open Folder" $\rightarrow$ `/opt/stockstats/`.
     *   Open a new terminal inside VS Code. It will read `dev_quant@basement_server: /opt/stockstats$`. 
+
+4.  **Validation:**
+    Inside the VS Code terminal, execute `source venv/bin/activate` followed by `python --version`. It must state `Python 3.11.x`. Your IDE is now executing code directly on the Basement Server's CPU securely over the VPN.
     
 **The Foundation is poured.** You are now physically ready to begin Sprint 2: Coding the Ingestion Engine.
 
