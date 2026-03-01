@@ -3,7 +3,7 @@
 ## Objective
 The ultimate objective of the STOCKSTATS project is to build a mathematically rigorous, fully autonomous algorithmic trading desk capable of deploying capital 24/7 across fragmented global liquidity pools.
 
-We unconditionally recognize that autonomous trading carries extreme systemic and financial risk. Therefore, the system will *not* be built using a monolithic "Big Bang" deployment strategy. It will be constructed defensively in **8 distinct sequential phases**, prioritizing a Minimum Viable Edge (MVE) and robust data sterilization before any complex automation is permitted.
+We unconditionally recognize that autonomous trading carries extreme systemic and financial risk. Therefore, the system will *not* be built using a monolithic "Big Bang" deployment strategy. It will be constructed defensively in **9 distinct sequential phases**, prioritizing a Minimum Viable Edge (MVE) and robust data sterilization before any complex automation is permitted.
 
 ---
 

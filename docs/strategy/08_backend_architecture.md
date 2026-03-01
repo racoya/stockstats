@@ -89,4 +89,4 @@ The system leverages `TimescaleDB` (a PostgreSQL extension) to enforce the track
 
 ## 5. Security & VPC Isolation Management
 *   **VPC Private Subnets:** The Ingestion, Logic, and Execution engines (Services 1, 2, 3) must reside strictly in private backend VPC subnets with absolutely $0$ public inbound internet access attached.
-*   **Secrets Matrix:** Hard-coding API keys in GitHub is systematically prohibited. All exchange API keys, `TimescaleDB` credentials, and `JWT` token salts must be injected securely at runtime via an encrypted localized vault (e.g., HashiCorp Vault or AWS Secrets Manager).
+*   **Secrets Matrix:** Hard-coding API keys in GitHub is systematically prohibited. All exchange API keys, `TimescaleDB` credentials, and `JWT` token salts must be injected securely at runtime via strictly permissioned `.env` bindings or an encrypted localized vault (e.g., HashiCorp Vault).

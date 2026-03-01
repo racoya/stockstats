@@ -4,7 +4,7 @@
 Mathematical quantitative models (like GARCH or Cointegration) operate in a pristine, theoretical vacuum. Their internal logic simply assumes: *"If the Z-Score is $+2.5$ and the Copula $C_L < 0.5$, execute trade to buy $1.00$ Bitcoin."*
 
 However, physiological cryptocurrency exchanges and high-frequency equity brokers are not perfect vacuums. Their physical Execution APIs frequently suffer from systemic degradation:
-1.  **Timeouts (HTTP 504 Gateway Timeout):** The algorithm sends the HTTP `POST /buy` payload, but the exchange's matching engine is overloaded by a flash crash. Your physical AWS server never receives a confirmation response.
+1.  **Timeouts (HTTP 504 Gateway Timeout):** The algorithm sends the HTTP `POST /buy` payload, but the exchange's matching engine is overloaded by a flash crash. Your physical Basement Server never receives a confirmation response.
 2.  **Rate Limiting (HTTP 429 Too Many Requests):** The system abruptly hits its REST API bandwidth quota, instantly blocking the execution attempt.
 3.  **Partial Fills & Race Conditions:** The algorithm orders $10.0$ BTC. Because it is a competitive High-Frequency Trading (HFT) environment, faster market markers pull their liquidity milliseconds before your order arrives. You are only filled for $2.0$ BTC. The remaining $8.0$ BTC sit orphaned, open on the L2 book as a Maker order, while the price rockets away.
 
@@ -68,7 +68,7 @@ If a `PENDING_SUBMIT` order does not physically transition to `ACKNOWLEDGED` or 
 1.  **Halt & Quarantine:** Immediately pause all incoming mathematical signal ingestion for the affected asset pair.
 2.  **Query by UUID:** Send an explicit, forced REST query directly to the exchange API: `GET /order?clientOid=ord-7f8a9b...`
 3.  **Resolution Branches:**
-    *   *If Exchange says "Order Not Found" (HTTP 404):* We theoretically prove the order died in network transit and never reached the AWS matching engine. We mark our local DB as `FAILED_TO_SUBMIT` and unlock the system to try again on the next signal loop.
+    *   *If Exchange says "Order Not Found" (HTTP 404):* We theoretically prove the order died in network transit and never reached the Binance matching engine. We mark our local DB as `FAILED_TO_SUBMIT` and unlock the system to try again on the next signal loop.
     *   *If Exchange returns the Order Record (HTTP 200):* We mathematically prove the order *did* execute. We parse the exact fill price array and execution quantity, forcefully update our local DB to match the exchange (`FILLED` or `PARTIAL`), and resume normal trading operations.
 
 ```python

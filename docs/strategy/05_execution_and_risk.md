@@ -91,7 +91,7 @@ Standard percentage Stop-Losses are reactive. The system uses dynamic VaR matric
 *   **Order Book Imbalance (OBI):** Before the VWAP slicer fires a micro-order, it polls Model 15. If the L2 book is exhibiting predatory "Spoofing" (OBI ratio $>0.75$), execution is paused to avoid Adverse Selection.
 
 ### D. The "Dead Man's Switch" (Cancel-On-Disconnect)
-*   **The Problem:** The AWS server hosting STOCKSTATS suffers a physical hardware failure or complete network cutoff. The local Python Risk Engine is dead and cannot cancel the $\$500,000$ of resting Maker limit orders currently exposed on the exchange.
+*   **The Problem:** The Basement Server hosting STOCKSTATS suffers a physical hardware failure or residential ISP blackout. The local Python Risk Engine is dead and cannot cancel the $\$500,000$ of resting Maker limit orders currently exposed on the exchange.
 *   **The Solution:** All algorithmic WebSocket connections must strictly negotiate the exchange-native **Cancel on Disconnect (CoD)** protocol (e.g., passing a 10-second heartbeat flag). If our severed Python script fails to ping the exchange matching engine within 10 seconds, the exchange automatically terminates all our open orders, saving the capital from post-crash market volatility.
 
 ## 4. Execution Auditing (The Slippage Delta)

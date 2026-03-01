@@ -46,7 +46,7 @@ graph TD
 ## 3. Deep Dive: Redis vs. PostgreSQL / TimescaleDB
 The system strictly decouples the high-frequency trading memory from the permanent backtesting storage. 
 
-If we attempt to run the live quantitative matrices by repeatedly querying the physical disk (PostgreSQL), the `asyncio` loop will bottleneck, resulting in execution latency ($t > 300ms$), fundamentally destroying the $R > 0$ edge. Conversely, if we attempt to store 4 years of historic ticks in RAM (Redis), the AWS server costs will be financially catastrophic.
+If we attempt to run the live quantitative matrices by repeatedly querying the physical disk (PostgreSQL), the `asyncio` loop will bottleneck, resulting in execution latency ($t > 300ms$), fundamentally destroying the $R > 0$ edge. Conversely, if we attempt to store 4 years of historic ticks in RAM (Redis), the physical Basement Server will immediately trigger an Out-of-Memory (OOM) kernel panic.
 
 Therefore, STOCKSTATS mandates a mathematically defined dual-storage architecture.
 
