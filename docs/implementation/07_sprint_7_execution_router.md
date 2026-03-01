@@ -8,6 +8,25 @@ It is time to automate. Sprint 7 builds the `backend/execution/` service. This c
 **Reference:** [Strategy 12 (Execution Sprints)](../strategy/12_execution_sprints_and_tickets.md#sprint-5-the-smart-order-router--nextjs-terminal)
 
 ---
+### ⚔️ The Smart Order Router & VWAP Slicer
+
+```mermaid
+flowchart TD
+    RISK(Sprint 6 Risk Engine:<br/>Authorizes $1,000 Allocation) --> SLICER{VWAP Order Slicer}
+    
+    SLICER -->|Slice 1: $208| API1[CCXT Async Router]
+    SLICER -->|Wait 1.5s - 4.0s| DELAY1((Stochastic Delay))
+    DELAY1 -->|Slice 2: $192| API2[CCXT Async Router]
+    DELAY1 -.->|... Slices 3 & 4 ...| API3
+    
+    API1 --> MAKE[Inject Cryptographic UUID:<br/>clientOrderId = '550e8400...']
+    API2 --> MAKE
+    
+    MAKE --> REST[POST /api/v3/order<br/>Maker Limit]
+    
+    REST --> BINANCE((Binance L2 Book))
+```
+---
 
 ## Step 1: The Execution Microservice
 

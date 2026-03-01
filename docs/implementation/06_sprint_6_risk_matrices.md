@@ -8,6 +8,23 @@ Before we can automate the execution router in Sprint 7, we must build the advan
 **Reference:** [Model 06 (Copula Dependency & VaR)](../models/06_copula_dependency.md), [Strategy 12 (Execution Sprints)](../strategy/12_execution_sprints_and_tickets.md#sprint-4-risk-matrices--capital-sizing-defense-systems)
 
 ---
+### 🛡️ The Risk Engine Decision Tree
+
+```mermaid
+flowchart TD
+    GARCH(GARCH Logic Engine:<br/>Signals BUY SOL/USDT) --> COPULA{Clayton Copula:<br/>Is SOL Highly Dependent on<br/>Open Portfolio?}
+    
+    COPULA -- YES (Theta > 2.0) --> VETO[🛑 VETO TRADE<br/>Prevent Flash Crash Clustering]
+    
+    COPULA -- NO (Independent) --> KELLY[Fractional Kelly Sizer:<br/>Query Historical System Win Rate]
+    
+    KELLY --> SIZE{Calculate f*}
+    SIZE -- f* < 0 --> VETO2[🛑 VETO TRADE<br/>Negative Expectancy]
+    SIZE -- f* > 0 --> AUTHORIZE[✅ AUTHORIZE $180<br/>Allocate max 5% NAV]
+    
+    AUTHORIZE --> EXEC(Pass to Sprint 7<br/>Execution Router)
+```
+---
 
 ## Step 1: Architecting the Risk Engine
 

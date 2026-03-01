@@ -10,6 +10,24 @@ We must implement a **State Machine Reconciliation Protocol** to deterministical
 **Reference:** [Model 13 (State Machine Reconciliation)](../models/13_state_machine_reconciliation.md), [Strategy 12 (Execution Sprints)](../strategy/12_execution_sprints_and_tickets.md#sprint-6-systemic-ledger-reconciliation-the-zombie-order-defense)
 
 ---
+### 🔄 Execution State Machine Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Generate UUID
+    
+    PENDING --> ACKNOWLEDGED: 200 OK (Binance returns ID)
+    PENDING --> HTTP_504_ORPHAN: Network Drop / Outage
+    
+    HTTP_504_ORPHAN --> INTERROGATOR: Rescue Protocol Engaged
+    
+    INTERROGATOR --> ACKNOWLEDGED: GET /order (Found)
+    INTERROGATOR --> REJECTED: After 5 attempts (Dead in transit)
+    
+    ACKNOWLEDGED --> FILLED: Websocket Confirmation
+    ACKNOWLEDGED --> CANCELED: Manual Intervention
+```
+---
 
 ## Step 1: The Immutable Ledger Schema
 

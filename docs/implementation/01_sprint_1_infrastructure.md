@@ -3,8 +3,33 @@
 ## The Objective
 Physically construct the Phase 1 Foundation of STOCKSTATS on the local machine. This involves scaffolding the isolated dual-database environment (TimescaleDB and Redis) and establishing the highly-controlled Python environment. 
 
-**Prerequisites:** Docker Desktop and Python 3.11 installed locally.
+**Prerequisites:** Docker Desktop and Python 3.11 installed locally (or on the Basement Server as defined in the Hardware Matrix).
 
+---
+### 🗺️ Infrastructure Architecture (Phase 1)
+
+```mermaid
+graph TD
+    classDef external fill:transparent,stroke:#f90,stroke-width:2px;
+    classDef vpn fill:transparent,stroke:#3498db,stroke-dasharray: 5 5;
+    
+    subgraph DevBox ["Linux Basement Server (DevBox)"]
+        subgraph Docker ["Docker Network"]
+            TSDB[(TimescaleDB<br/>PostgreSQL 15)]:::database
+            REDIS[(Redis<br/>Alpine)]:::cache
+        end
+        
+        PYTHON[Python 3.11 Virtual Env<br/>Math & Routing Engine]
+        PYTHON -->|asyncpg| TSDB
+        PYTHON -->|redis.asyncio| REDIS
+    end
+    
+    subgraph Remote ["Remote Developer (MacBook)"]
+        VS["VS Code Remote-SSH<br/>(Writes code directly to DevBox)"]
+    end
+    
+    VS -.->|Secure Tunnel| PYTHON
+```
 ---
 
 ## Step 1: Directory Scaffolding & Environment Variables

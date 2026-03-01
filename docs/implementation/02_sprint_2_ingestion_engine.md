@@ -6,6 +6,25 @@ Build the asynchronous Python Ingestion Engine. Its sole purpose is to connect t
 **Prerequisite:** Sprint 1 (`docker-compose up -d` is running).
 
 ---
+### 🌊 The Ingestion Pipeline
+
+```mermaid
+flowchart TD
+    EXCHANGE((Binance<br/>Websocket)) -->|Raw Tick string| CCXT(CCXT Async Listener)
+    
+    CCXT --> VWAP{Microsecond<br/>Race Condition<br/>VWAP Aggregator}
+    
+    VWAP -->|Simultaneous Microsecond Collision| VWAP
+    VWAP -.->|Coalesced Clear Tick| HAMPEL(Numba Hampel Scrubber<br/>Sprint 3)
+    
+    HAMPEL --> ROUTER(Database Dual-Router)
+    
+    ROUTER -->|asyncpg INSERT| TSDB[(TimescaleDB<br/>Permanent Archive)]
+    ROUTER -->|redis Pub/Sub & ZSET| REDIS[(Redis<br/>5-Minute Cache)]
+    
+    style EXCHANGE fill:#f90,stroke:#333,stroke-width:2px;
+```
+---
 
 ## Step 1: The Asynchronous Environment Bootstrapper
 
