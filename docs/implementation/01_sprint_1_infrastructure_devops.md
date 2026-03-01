@@ -93,12 +93,56 @@ Developers code locally on Macs, executing physically on the Basement Server.
 
 ## Pillar 4: Git & GitHub Collaboration Workflows
 
-We utilize a rigorous **Trunk-Based Development** model.
+To maintain a mathematically pristine and auditable codebase across a distributed quantitative team, we enforce strict **Trunk-Based Development** paired with **Conventional Commits** and rigid Pull Request (PR) templates. This is an industry-standard mandate.
 
-1.  **The `main` Branch is Sacred:** Direct commits to `main` are strictly prohibited via GitHub Branch Protection.
-2.  **Feature Branches:** Every ticket becomes an isolated branch (e.g., `feat/2.1-garch-volatility`). Branches live $< 48$ hours.
-3.  **Pull Requests (PR):** Every PR must be reviewed by at least one other human or the AI Architect. PRs must contain mathematical validation proofs.
-4.  **Squash and Merge:** Approving a PR crushes the messy commit history into one atomic commit on `main`.
+### 4.1 Branch Naming Conventions
+Every ticket generated from the [Execution Sprints](../strategy/12_execution_sprints_and_tickets.md) becomes an isolated, short-lived branch. Branches must live $< 48$ hours to prevent merge conflicts.
+Format: `<type>/<ticket-id>-<short-description>`
+
+**Permitted Types:**
+*   `feat/`: A new mathematical model, API endpoint, or systemic feature. *(e.g., `feat/2.1-garch-volatility`)*
+*   `fix/`: A patch for a bug or mathematically incorrect logic. *(e.g., `fix/1.5-hampel-nan-error`)*
+*   `docs/`: Changes strictly to Markdown documentation. *(e.g., `docs/cloud-migration-update`)*
+*   `refactor/`: Code changes that neither fix a bug nor add a feature (e.g., optimizing loop speed). *(e.g., `refactor/numba-array-loop`)*
+*   `test/`: Adding or correcting `pytest` matrices.
+
+### 4.2 Conventional Commits Standard
+Commit messages act as the immutable ledger of our engineering intent. We strictly follow the [Conventional Commits V1.0](https://www.conventionalcommits.org/) specification.
+
+**Format:**
+```text
+<type>(<scope>): <subject>
+
+[optional body]
+```
+
+**Examples:**
+*   ✅ `feat(ingestion): implement CCXT async websocket loop`
+*   ✅ `fix(math): correct SQN division by zero error`
+*   ✅ `docs(strategy): update Phase 9 cloud migration architecture`
+*   ❌ `fixed the bug` (Violates protocol, will be rejected by CI)
+
+### 4.3 Pull Request (PR) Template & Standards
+Direct commits to the `main` branch are strongly prohibited. All code enters `main` exclusively via a Pull Request. Every PR description must follow this explicit template:
+
+```markdown
+**Ticket:** [Link to Ticket e.g., Ticket 2.1]
+**Type:** [Feature | Bugfix | Refactor | Docs]
+
+**1. Description of Changes**
+[Explain exactly what structural changes were made to the codebase.]
+
+**2. Mathematical / Logic Validation**
+[Provide proof that the math works. e.g., "Ran pytest on statmodels ADF test, returning p-value < 0.05 on mock arrays."]
+
+**3. Breaking Changes?**
+[Yes/No. If yes, explain what database schemas or API contracts must be updated.]
+```
+
+### 4.4 Code Review & Merge Protocol
+1.  **Branch Protection:** `main` requires at least 1 approving review (Human or AI Agent) before merging.
+2.  **Continuous Integration (CI):** GitHub Actions will automatically run `flake8`, `black`, and quantitative `pytest` suites. If a PR fails the math tests, the "Merge" button statically locks.
+3.  **Squash and Merge Only:** When a PR is approved, we execute a "Squash and Merge." This crushes multiple messy micro-commits from the feature branch into a single, clean, atomic Conventional Commit on `main`.
 
 ---
 
