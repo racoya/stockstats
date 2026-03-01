@@ -79,7 +79,7 @@ graph TD
         direction TB
         OS[Ubuntu OS Kernel]:::neutral
         APP[Python Script]:::danger
-        DB[(PostgreSQL)]:::danger
+        DB[("PostgreSQL")]:::danger
         
         APP -.->|Memory Leak Spikes to 32GB| OS
         OS -.->|OOM Panic Kills Database| DB
@@ -94,7 +94,7 @@ graph TD
         end
         
         subgraph NetB ["Storage Virtual Network"]
-            CONT2[(TimescaleDB Container)<br/>Strict RAM Fence: 16GB]:::safe
+            CONT2[("TimescaleDB Container<br/>Strict RAM Fence: 16GB")]:::safe
         end
         
         HYP --- NetA
