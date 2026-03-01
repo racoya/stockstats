@@ -47,6 +47,7 @@ While C++ and JVM-tuned Java are the dominant languages in traditional High-Freq
 *   **The Event Bus:** Kafka or Redis Pub/Sub. The asynchronous nervous system connecting the decentralized microservices natively.
 
 ## 4. DevOps & Production Architecture
-*   **Containerization:** Docker. Every isolated microservice must have its own strict `Dockerfile` to guarantee perfect mathematically parity between the Quant's local laptop and the live AWS production cluster.
-*   **Orchestration:** Docker Compose (Local Quantitative R&D) migrating to Kubernetes (K8s) or AWS ECS for live autonomous production.
-*   **CI/CD Isolation:** GitHub Actions. Every Git push to the `main` branch must physically trigger automated Python unit tests evaluating the mathematical models (e.g., ADF Stationarity, VWAP sizing) against static $2021$ mock data before a Docker deploy is structurally permitted.
+*   **Containerization:** Docker. Every isolated microservice must have its own strict `Dockerfile` to guarantee perfect mathematically parity between the Quant's local laptop, the Basement Server, and the future AWS production cluster.
+*   **Orchestration (Phases 1-8):** Docker Compose. All Production trading occurs physically on the local Basement Server to minimize costs and maximize iteration speed during early autonomy.
+*   **Orchestration (Phase 9 Future):** AWS Elastic Container Service (ECS). Once the autonomous Basement Server proves profitable over several months, the Docker networks are migrated to a dedicated Tokyo VPC for sub-millisecond latency arbitrage.
+*   **CI/CD Isolation:** GitHub Actions. Every Git push to the `main` branch must physically trigger automated Python unit tests evaluating the mathematical models against static $2021$ mock data before a Docker deploy is structurally permitted.

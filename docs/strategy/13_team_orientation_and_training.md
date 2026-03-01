@@ -116,11 +116,20 @@ If a Black Swan event occurs (e.g., an unexpected global crisis), mathematical c
 
 ---
 
-## Conclusion & Next Steps
+## Conclusion, Next Steps, & The Future Cloud
+
 We are building a machine that expects the environment to be actively hostile. 
 1.  **We clean the data ([Hampel Filters](../models/14_data_scrubbing_hampel.md)):** We mathematically scrub out "rogue" exchange ticks caused by API errors so our models aren't triggered by fake data.
 2.  **We prove the math ([Cointegration](../models/02_cointegration_arb.md)):** We don't guess direction; we wait for the statistical spread between two highly correlated assets to break, knowing it is mathematically bound to revert.
 3.  **We test the risk ([Copulas](../models/06_copula_kelly_sizing.md)):** Before executing that edge, we scan the entire portfolio for hidden correlation traps to avoid buying into a systemic "Black Swan" flash crash.
 4.  **We hide the execution ([VWAP Slicers](../models/04_vwap_liquidity.md)):** When we deploy capital, we slice large orders into tiny micro-fractions to prevent predatory HFTs from seeing our size and stealing our alpha via slippage.
+
+### The Infrastructure Evolution (Phase 9)
+As a new engineer, you will be deploying code to the **Basement Server**. We explicitly run Production locally for the first 8 phases. This minimizes cloud expenses while allowing us to physically monitor execution logs during the most dangerous autonomous verification months.
+
+However, once the engine proves a sustained $E(R)>0$ expectancy across months of automated market cycles, we execute **Phase 9: Cloud Migration**. 
+*   **You must build your Docker images to be completely hardware-agnostic.**
+*   The exact same `stockstats-prod` Docker image that runs in the basement will be lifted and shifted to an **AWS EC2 Virtual Private Cloud (VPC)** physically co-located near the Binance matching engine in Tokyo (`ap-northeast-1`). 
+*   This migration is strictly for latency optimization (dropping exchange ping from 40ms to <5ms), *not* logic changes.
 
 You are now conceptually calibrated to the STOCKSTATS architecture. Your immediate next step is to review `task.md` and the **[Sprint 1 Implementation Plan](12_execution_sprints_and_tickets.md)**, where we begin physically scaffolding the TimescaleDB and Redis pipelines.

@@ -58,11 +58,11 @@ The "Zombie Order" defense framework.
 *   **Completion Criteria:** The system proves it can transparently survive a catastrophic exchange API outage or matching engine crash without accidentally double-spending or stranding deployed grid capital.
 
 ## Phase 7: Full Autonomy (The Machine Takes Control)
-*The system assumes complete topological trading control; the human acts purely as a macro risk monitor.*
+*The system assumes complete topological trading control on the local Basement Server; the human acts purely as a macro risk monitor.*
 *   **Action items:**
     *   Sever the "Human Approval" UX friction from the Smart Order Router.
     *   Connect the Logic Engine directly to the Risk Engine and SOR via Kafka event buses.
-    *   Deploy the 4 Dockerized microservices strictly on a hardened, VPC-isolated Linux cluster.
+    *   Deploy the 4 Dockerized microservices strictly within the isolated Production Docker Network on the Basement Server.
 *   **Completion Criteria:** The system autonomously identifies an anomaly, verifies GARCH conditions, calculates Copula tail-risk, sizes via Fractional Kelly, checks OBI toxicity, and fully executes the VWAP slices—entirely without human intervention, 24/7/365.
 
 ## Phase 8: Machine Learning Overlays (Meta-Labeling)
@@ -73,3 +73,11 @@ The final stage of structural optimization. We do not use ML to generate foundat
     *   Train an XGBoost algorithmic classifier using the Triple-Barrier Method.
     *   Inject the compiled ML model directly before the SOR as a final probability filter.
 *   **Completion Criteria:** The Win Rate ($P_w$) and System Quality Number (SQN) actively increase due to Artificial Intelligence successfully vetoing losing mathematical trades mere milliseconds prior to L2 execution.
+
+## Phase 9: Cloud Infrastructure Migration (Scaling & Latency Arbitrage)
+Once the fully automated system has been running live in Production on the Basement Server for several months, proving its $E(R)>0$ expectancy across all market conditions without physical hardware bottlenecks, we execute the final structural pivot.
+*   **Action items:**
+    *   Migrate the TimescaleDB ledger securely to a managed cloud database (e.g., AWS RDS or Timescale Cloud).
+    *   Deploy the Production Docker containers to a dedicated AWS Virtual Private Cloud (VPC) cluster (e.g., ECS or EKS).
+    *   **The Geo-Location Optimization:** Co-locate the AWS VPS in the exact physical region of the centralized exchange (e.g., Tokyo `ap-northeast-1` for Binance) to drop execution latency to $< 5$ milliseconds.
+*   **Completion Criteria:** The entire STOCKSTATS macro-architecture is 100% decommissioned from the residential Basement Server and operates globally on hardened, enterprise-grade external cloud infrastructure, achieving institutional latency reductions.

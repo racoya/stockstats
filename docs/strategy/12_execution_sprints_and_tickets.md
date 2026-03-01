@@ -114,8 +114,8 @@ This document must act as the primary local checklist during the entire engineer
 
 ---
 
-## Sprint 7: Full Autonomy & Cloud VPC Deployment
-*Severing the human approval UX friction. The algorithm takes exclusive control 24/7.*
+## Sprint 7: Full Autonomy (Local Basement Server)
+*Severing the human approval UX friction. The algorithm takes exclusive control 24/7 on the local machine.*
 
 - [ ] **Ticket 7.1: Kafka/Redis PubSub Event Buses**
   - **Priority:** High
@@ -123,9 +123,9 @@ This document must act as the primary local checklist during the entire engineer
 - [ ] **Ticket 7.2: Decouple Frontend Execution UX Friction**
   - **Priority:** Medium
   - **Action:** Physically remove the React "Confirm Open Route" buttons from the UI terminal, officially converting the Next.js application into a passive, read-only monitoring dashboard.
-- [ ] **Ticket 7.3: VPC Docker Deployment (AWS/GCP)**
-  - **Priority:** Medium
-  - **Action:** Migrate the local docker-compose architecture onto hardened, isolated Linux cloud infrastructure (e.g., AWS ECS or standalone Ubuntu droplets securely locked behind proprietary VPCs).
+- [ ] **Ticket 7.3: Local Docker Production Deployment**
+  - **Priority:** High
+  - **Action:** Transition the 4 architectural components into their formal `stockstats-prod` headless Docker configurations, routing all communication entirely over the isolated internal port network (e.g., `localhost:5434`).
 
 ---
 
@@ -144,3 +144,18 @@ This document must act as the primary local checklist during the entire engineer
 - [ ] **Ticket 8.4: Inject ML Veto into Smart Order Router**
   - **Priority:** High
   - **Action:** Hardcode the constraint requiring the $E(R)>0$ math signal to execute through the fast-compiled XGBoost probability tree *before* the VWAP Slicer deploys. A veto requires an instant algorithmic stand-down.
+
+---
+
+## Sprint 9: Cloud VPC Migration (AWS Optimization)
+*The final infrastructure pivot. Executed only after months of proven, profitable automation on the local Basement Server.*
+
+- [ ] **Ticket 9.1: Provision AWS Tokyo VPS & RDS**
+  - **Priority:** Medium
+  - **Action:** Deploy the physical AWS EC2 compute instances (`ap-northeast-1`) and configure the heavily restricted internal Virtual Private Cloud (VPC) firewalls.
+- [ ] **Ticket 9.2: TimescaleDB Migration & Ledger Sync**
+  - **Priority:** High
+  - **Action:** Safely execute a continuous WAL replication or logical dump from the Basement Server to the AWS Cloud Ledger without losing a single L1 tick or execution state.
+- [ ] **Ticket 9.3: Cutover & Latency Validation**
+  - **Priority:** High
+  - **Action:** Gracefully shut down the Basement Docker execution routers, deploy the Docker images to the AWS ECS cluster, and mathematically verify the drop in L2 Execution network latency from $\sim40$ms domestic to $<5$ms co-located.
