@@ -20,13 +20,14 @@ As we transition from theory to execution, the physical machines running the STO
 ### 1.1 Sprints 1-5: The Phase 1 MVP (Centralized Basement Server)
 We prioritize cost and iteration speed. Instead of developers working in silos on laptops, we utilize a **Centralized Basement Server** (DevBox & Data Hub) from Day 1.
 
+*   **Bare-Metal vs. Hypervisor:** The STOCKSTATS Ubuntu OS does *not* need to be the only operating system on the physical hardware. It is actively encouraged to run as a **Dedicated Virtual Machine** (via Proxmox, ESXi, or Hyper-V) alongside your existing basement VMs, provided it is treated as a tier-one citizen.
 *   **Persistent Data Ingestion:** The server runs TimescaleDB 24/7. This guarantees an unbroken dataset of L1 ticks.
 *   **VS Code Remote Development:** Developers write code directly on the server's compute cycles via SSH.
 
-**Minimum Hardware Specifications:**
-*   **CPU:** 8+ Cores (e.g., Intel i7/i9, AMD Ryzen 7/9). Simulates execution loops and handles simultaneous SSH sessions without thread blocking.
-*   **RAM:** 32-64 GB (ECC Preferred). TimescaleDB and Pandas matrices consume massive memory. Out-Of-Memory (OOM) kills during a live trade are catastrophic.
-*   **Storage:** 1 TB NVMe SSD (PCIe Gen 4.0+). Mechanical HDDs or SATA SSDs are strictly prohibited. TimescaleDB continuous aggregations require $> 5,000$ IOPS to prevent I/O queuing during volatile market events.
+**Minimum Hardware Specifications (Allocated to the VM):**
+*   **CPU:** 8+ Dedicated vCores (e.g., pinned from an Intel i7/i9 or AMD Ryzen). Simulates execution loops and handles simultaneous SSH sessions without thread blocking. Do not over-provision these cores to other VMs.
+*   **RAM:** 32-64 GB (ECC Preferred). TimescaleDB and Pandas matrices consume massive memory. Out-Of-Memory (OOM) kills during a live trade are catastrophic. The Hypervisor must *lock* this memory to the STOCKSTATS VM (no ballooning).
+*   **Storage:** 1 TB NVMe SSD (PCIe Gen 4.0+). Mechanical HDDs or SATA SSDs are strictly prohibited. The Hypervisor must configure the drive for direct hardware passthrough (e.g., PCI Passthrough or raw ZFS block devices) to ensure the VM has unrestricted access to the $5,000+$ IOPS necessary to prevent database queuing.
 *   **Network:** Stable 500+ Mbps Fiber connection. 
 
 ### 1.2 Sprints 6-9: Autonomous Execution (Production Deployment)
@@ -72,7 +73,7 @@ graph TD
 *   **IV. Backing Services:** TimescaleDB and Redis are treated as loosely coupled attached resources. If the database physical IP changes (e.g., migrating to AWS RDS), the Python codebase does not change; only the `.env` target URL changes.
 *   **X. Dev/Prod Parity:** We violently minimize the gap between environments. Development, Staging, and Production operate on the exact same Linux distributions driven by Docker Compose.
 
-### 2.1 The Three Isolated Environments (Single Bare-Metal)
+### 2.1 The Three Isolated Environments (Single Physical Host / VM)
 Because all three stacks live on the identical Basement Server initially, we achieve isolation entirely through **Docker Networking** and **Port Mapping**. They must never share a database instance.
 
 1.  **🟢 Development (DEV):** 
@@ -224,7 +225,39 @@ We treat the AI (Antigravity/Claude) not as a subservient code-generator, but as
 
 ## Pillar 6: The Execution Runbook (Zero-to-One Provisioning)
 
-With the theoretical foundations locked (Pillars 1-5), the Infrastructure Engineer executes this precise sequence to physically manifest the STOCKSTATS architecture. This guide takes a blank Ubuntu 24.04 LTS bare-metal Basement Server and provisions it fully to host remote developers.
+With the theoretical foundations locked (Pillars 1-5), the Infrastructure Engineer executes this precise sequence to physically manifest the STOCKSTATS architecture. This guide takes a blank Ubuntu 24.04 LTS Basement Server (Bare-Metal strictly or a Dedicated Virtual Machine) and provisions it fully to host remote developers.
+
+### 🗺️ Infrastructure Architecture (Basement Topology)
+
+```mermaid
+graph TD
+    classDef prod fill:#ffebee,stroke:#f44336,stroke-width:2px;
+    classDef dev fill:#e3f2fd,stroke:#2196f3,stroke-width:2px;
+    classDef vpn fill:transparent,stroke:#3498db,stroke-dasharray: 5 5;
+    
+    subgraph DevBox ["Linux Basement Server (Dedicated VM or Bare-Metal)"]
+        
+        subgraph DevNet ["Development Network"]
+            TSDB_DEV[(TimescaleDB :5432)]:::dev
+            REDIS_DEV[(Redis :6379)]:::dev
+            PYTHON_DEV[VS Code Python Env<br/>Math & Shadow Engine]:::dev
+        end
+        
+        subgraph ProdNet ["Production Docker Network (Isolated)"]
+            TSDB_PROD[(TimescaleDB :5434)]:::prod
+            PROD_APP[StockStats Prod Container<br/>Live Trading API Keys]:::prod
+        end
+        
+        PYTHON_DEV -->|Reads| TSDB_DEV
+        PROD_APP -->|Executes Binance| TSDB_PROD
+    end
+    
+    subgraph Remote ["Remote Developer (MacBook)"]
+        VS["VS Code Remote-SSH"]
+    end
+    
+    VS -.->|Secure Tailscale VPN| PYTHON_DEV
+```
 
 ### Step 1: The Cryptographic Network Layer (Tailscale & UFW)
 Before any code touches the server, we must build the encrypted perimeter and lock the gates.
