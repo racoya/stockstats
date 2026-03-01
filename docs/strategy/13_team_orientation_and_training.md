@@ -116,20 +116,30 @@ If a Black Swan event occurs (e.g., an unexpected global crisis), mathematical c
 
 ---
 
-## Conclusion, Next Steps, & The Future Cloud
+---
+
+## Module 5: The Infrastructure Evolution (Phase 9)
+
+As a new engineer on this desk, you must understand our explicit hardware deployment strategy. We are not a venture-backed startup burning $\$10,000/$mo on AWS before we have a verified mathematical edge.
+
+### 5.1 The Basement Server (Phases 1-8)
+You will be deploying all code, including the Live Production Engine, physically to the team's internal **Basement Server**.
+*   **Why?** It reduces cloud expenses to zero. More importantly, it allows us unrestricted, raw access to the TimescaleDB ledger and Linux system logs during the absolute most dangerous months of the active deployment—when the autonomous Smart Order Router is taking its first live trades.
+*   **Safety via Port Isolation:** Even though DEV, STAGING, and PROD sit on the exact same CPU, they are rigidly isolated via Docker Overlay Networks. The Production container operates headlessly and blindly to the Dev container.
+
+### 5.2 The Cloud Migration Mandate (Phase 9)
+Once the engine proves a sustained $E(R)>0$ compound growth rate across months of automated market cycles on the Basement Server, we execute **Phase 9: The Cloud Migration**.
+*   **The Docker Contract:** This is why you **must build your Docker images to be completely hardware-agnostic**. The exact same `stockstats-prod` Docker image that runs in the basement today must lift and shift instantly to an **AWS EC2 Virtual Private Cloud (VPC)** tomorrow without a single line of Python being rewritten.
+*   **Latency Arbitrage:** We do not move to AWS for "scale." We move to AWS for **Latency Arbitrage**. We will physically rent an AWS Linux Server in Tokyo (`ap-northeast-1`), physically co-located on the same internet backbone as the Binance Matching Engine. This drops our API ping latency from $40$ milliseconds (domestic basement) to $<5$ milliseconds, allowing us to actively front-run predatory HFT algorithms.
+
+---
+
+## Conclusion & Next Steps
 
 We are building a machine that expects the environment to be actively hostile. 
 1.  **We clean the data ([Hampel Filters](../models/14_data_scrubbing_hampel.md)):** We mathematically scrub out "rogue" exchange ticks caused by API errors so our models aren't triggered by fake data.
-2.  **We prove the math ([Cointegration](../models/02_cointegration_arb.md)):** We don't guess direction; we wait for the statistical spread between two highly correlated assets to break, knowing it is mathematically bound to revert.
-3.  **We test the risk ([Copulas](../models/06_copula_kelly_sizing.md)):** Before executing that edge, we scan the entire portfolio for hidden correlation traps to avoid buying into a systemic "Black Swan" flash crash.
-4.  **We hide the execution ([VWAP Slicers](../models/04_vwap_liquidity.md)):** When we deploy capital, we slice large orders into tiny micro-fractions to prevent predatory HFTs from seeing our size and stealing our alpha via slippage.
-
-### The Infrastructure Evolution (Phase 9)
-As a new engineer, you will be deploying code to the **Basement Server**. We explicitly run Production locally for the first 8 phases. This minimizes cloud expenses while allowing us to physically monitor execution logs during the most dangerous autonomous verification months.
-
-However, once the engine proves a sustained $E(R)>0$ expectancy across months of automated market cycles, we execute **Phase 9: Cloud Migration**. 
-*   **You must build your Docker images to be completely hardware-agnostic.**
-*   The exact same `stockstats-prod` Docker image that runs in the basement will be lifted and shifted to an **AWS EC2 Virtual Private Cloud (VPC)** physically co-located near the Binance matching engine in Tokyo (`ap-northeast-1`). 
-*   This migration is strictly for latency optimization (dropping exchange ping from 40ms to <5ms), *not* logic changes.
+2.  **We prove the math ([Cointegration](../models/02_cointegration_arb.md)):** We don't guess direction. We wait for the statistical spread between two highly correlated assets to break.
+3.  **We test the risk ([Copulas](../models/06_copula_kelly_sizing.md)):** Before executing that edge, we scan the entire portfolio for hidden correlation traps.
+4.  **We hide the execution ([VWAP Slicers](../models/04_vwap_liquidity.md)):** When we deploy capital, we slice large orders into tiny micro-fractions to hide our footprint.
 
 You are now conceptually calibrated to the STOCKSTATS architecture. Your immediate next step is to review `task.md` and the **[Sprint 1 Implementation Plan](12_execution_sprints_and_tickets.md)**, where we begin physically scaffolding the TimescaleDB and Redis pipelines.
