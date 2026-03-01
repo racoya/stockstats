@@ -1,9 +1,9 @@
 # Sprint 9 Implementation: State Machine Reconciliation
 
 ## The Objective
-In Sprint 7, we built the Smart Order Router (SOR) that fires cryptographic limit orders to Binance. However, networks fail. AWS drops packets. Binance APIs crash under load.
+In Sprint 7, we built the Smart Order Router (SOR) that fires cryptographic limit orders to Binance. However, networks fail. Residential ISPs drop packets. Binance APIs crash under load.
 
-If our Python Execution Engine fires a $\$50,000$ order, but the HTTP connection drops before Binance sends an `ACKNOWLEDGED` receipt back, the system enters a mathematically catastrophic state. Did the order fill? Was it rejected? Is it sitting limit-locked on the exchange?
+If our Python Execution Engine fires a $\$50,000$ order from the Basement Server, but the HTTP connection drops before Binance sends an `ACKNOWLEDGED` receipt back, the system enters a mathematically catastrophic state. Did the order fill? Was it rejected? Is it sitting limit-locked on the exchange?
 
 We must implement a **State Machine Reconciliation Protocol** to deterministically map our internal Immutable Ledger against the external Exchange Matching Engine.
 

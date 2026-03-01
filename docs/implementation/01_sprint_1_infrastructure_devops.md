@@ -29,18 +29,18 @@ We prioritize cost and iteration speed. Instead of developers working in silos o
 *   **Storage:** 1 TB NVMe SSD. Mandatory to prevent TimescaleDB I/O queuing.
 *   **Network:** Stable 500+ Mbps Fiber connection. 
 
-### 1.2 Sprints 6-9: Autonomous Execution (Cloud VPC)
-The moment we launch the CCXT Execution Router, the system **cannot** exist in a local basement. A local ISP drop leaves "Zombie Orders" on the exchange.
+### 1.2 Sprints 6-9: Autonomous Execution (Production Deployment)
+For the foreseeable future, **Production will run alongside Development on the Basement Server**. A strong local server can handle both workloads brilliantly, provided they are heavily guarded by strict Docker boundaries.
 
-*   **Machine Type:** Compute-Optimized Droplet / EC2 Instance (e.g., AWS `c6i.xlarge` or DigitalOcean Premium Intel).
-*   **CPU:** 4 Dedicated vCPUs.
-*   **The Geo-Location Mandate:** You must physically rent your VPS in Tokyo (AWS `ap-northeast-1`). By co-locating the VPS near Binance servers, our TCP latency drops to $< 5$ milliseconds, allowing us to dodge HFT spoofing.
+*   **Machine Type:** The existing Centralized Basement Server.
+*   **The Docker Mandate:** Production logic does *not* execute natively. It runs inside a locked Linux Docker Container (`stockstats-prod-engine`). If the dev team crashes the system with a memory leak during testing, Docker limits guarantee the Production Engine is unaffected.
+*   **Future Note on Latency Arbitrage:** In Phase 8, when sub-millisecond latency becomes a limiting factor, we can migrate the `stockstats-prod-engine` Docker container to an AWS VPS in Tokyo (`ap-northeast-1`). Until then, domestic network latency is acceptable for our macroscopic $E(R)>0$ edge.
 
 ### 1.3 Sprint 10: Machine Learning (GPU Acceleration)
-Compiling XGBoost gradient trees across 100 boosting rounds is catastrophically slow on a standard CPU.
+Compiling XGBoost gradient trees across 100 boosting rounds is slow on a standard CPU. However, if the Basement Server has a high-end dedicated GPU (e.g., NVIDIA RTX 3090 / 4090), we do not need AWS Cloud.
 
-*   **GPU (Critical):** Temporary GPU Cloud Instance (1x NVIDIA T4 / A10G).
-*   **Cost Strategy:** We spin up the GPU strictly to train the model, save the `meta_model.json` file, and instantly terminate it. The cheap Tokyo Execution VPS can execute *predictions* sub-millisecond.
+*   **GPU:** The local NVIDIA card inside the Basement Server.
+*   **Cost Strategy:** Zero marginal cost. We train the trees locally, save the `meta_model.json`, and pass it locally to the Production Container.
 
 ---
 
@@ -48,20 +48,23 @@ Compiling XGBoost gradient trees across 100 boosting rounds is catastrophically 
 
 An algorithmic trading machine with direct API access to retirement accounts cannot be tested "live." We adhere to the **12-Factor App Methodology**, strictly separating Configuration (`.env`) from Code.
 
-### 2.1 The Three Isolated Environments
+### 2.1 The Three Isolated Environments (Single Bare-Metal)
+Because all three stacks live on the identical Basement Server, we achieve isolation entirely through **Docker Networking** and **Port Mapping**.
+
 1.  **🟢 Development (DEV):** 
-    *   **Location:** Centralized Basement Server.
-    *   **Keys:** Binance Testnet or strictly Read-Only Mainnet keys.
+    *   **Architecture:** Runs natively via VS Code remote (`python3 ingest.py`). Connects to `localhost:5432` (Dev Timescale).
+    *   **Keys:** Binance Testnet or Read-Only Mainnet keys.
     *   **Execution:** Blocked. `STOCKSTATS_EXECUTION_MODE=SHADOW`
 2.  **🟡 Staging / Paper Trading (UAT):** 
+    *   **Architecture:** Runs inside a Docker Container (`stockstats-staging`). Connects to `localhost:5433` (Staging Timescale).
     *   **Goal:** Forward-testing over 30 days. Uses Read-Only Mainnet Keys. Trades route exclusively to the local SQL `shadow_execution_ledger` to simulate slippage without risking capital.
 3.  **🔴 Production (PROD):** 
-    *   **Location:** AWS VPS in Tokyo.
+    *   **Architecture:** Runs completely headless inside an isolated Docker Container (`stockstats-prod`). Connects to an incredibly secure `localhost:5434` (Prod Timescale bindings limited to the Docker Bridge).
     *   **Keys:** Binance Mainnet TRADING Keys (Withdrawals disabled at exchange).
 
-### 2.2 GitHub Actions (CI/CD)
-*   **CI (Testing):** When code is pushed via PR, a virtual Linux server runs `flake8`, `black`, and `pytest`. If mathematical validation fails (e.g., Hampel filter returns wrong MAD), GitHub physically blocks the "Merge" button.
-*   **CD (Deployment):** Merging a PR into `main` automatically tags a Release, pushes a Docker image to AWS ECR, and forcefully restarts the Tokyo router.
+### 2.2 GitHub Actions / Local Scripts (CI/CD)
+*   **CI (Testing):** Before merging to `main`, GitHub Actions runs `flake8`, `black`, and `pytest`. If mathematical validation fails (e.g., Hampel filter returns wrong MAD), GitHub physically blocks the "Merge" button.
+*   **CD (Deployment):** Merging a PR into `main` signals the Basement Server to `git pull`, rebuild the Production Docker image (`docker build -t stockstats-prod .`), and hot-swap the internal container.
 
 ---
 
@@ -113,29 +116,36 @@ The system is cooperatively engineered between human experts and the Antigravity
 
 With DevOps workflows locked, we physically build the Phase 1 Foundation: the TimescaleDB/Redis backend and the strict Python virtual environment.
 
-### 🗺️ Infrastructure Architecture (Phase 1)
+### 🗺️ Infrastructure Architecture (Basement Server Topology)
 
 ```mermaid
 graph TD
-    classDef external fill:transparent,stroke:#f90,stroke-width:2px;
+    classDef prod fill:#ffebee,stroke:#f44336,stroke-width:2px;
+    classDef dev fill:#e3f2fd,stroke:#2196f3,stroke-width:2px;
     classDef vpn fill:transparent,stroke:#3498db,stroke-dasharray: 5 5;
     
-    subgraph DevBox ["Linux Basement Server (DevBox)"]
-        subgraph Docker ["Docker Network"]
-            TSDB[(TimescaleDB<br/>PostgreSQL 15)]:::database
-            REDIS[(Redis<br/>Alpine)]:::cache
+    subgraph DevBox ["Linux Basement Server (Bare Metal)"]
+        
+        subgraph DevNet ["Development Network"]
+            TSDB_DEV[(TimescaleDB :5432)]:::dev
+            REDIS_DEV[(Redis :6379)]:::dev
+            PYTHON_DEV[VS Code Python Env<br/>Math & Shadow Engine]:::dev
         end
         
-        PYTHON[Python 3.11 Virtual Env<br/>Math & Routing Engine]
-        PYTHON -->|asyncpg| TSDB
-        PYTHON -->|redis.asyncio| REDIS
+        subgraph ProdNet ["Production Docker Network (Isolated)"]
+            TSDB_PROD[(TimescaleDB :5434)]:::prod
+            PROD_APP[StockStats Prod Container<br/>Live Trading API Keys]:::prod
+        end
+        
+        PYTHON_DEV -->|Reads| TSDB_DEV
+        PROD_APP -->|Executes Binance| TSDB_PROD
     end
     
     subgraph Remote ["Remote Developer (MacBook)"]
-        VS["VS Code Remote-SSH<br/>(Writes code directly to DevBox)"]
+        VS["VS Code Remote-SSH"]
     end
     
-    VS -.->|Secure Tunnel| PYTHON
+    VS -.->|Secure Tailscale VPN| PYTHON_DEV
 ```
 
 ---
