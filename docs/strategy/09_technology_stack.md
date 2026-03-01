@@ -23,28 +23,38 @@ TypeScript provides the strict architectural type safety required for operationa
 *   **Usage:** The Operations REST API (Service 4) and the Frontend Command Center.
 *   **Why TS over Python for Web:** Node.js/TypeScript handles asynchronous I/O (like pushing thousands of simultaneous WebSocket `ACKNOWLEDGED` updates to the frontend dashboard) structurally more efficiently than standard Python WSGI frameworks.
 
-### C. The Conscious Exclusion of Java / C++
-While C++ and JVM-tuned Java are the dominant languages in traditional High-Frequency Trading (HFT) Market Making firms, they have been aggressively excluded from the STOCKSTATS architecture for explicit strategic reasons:
-*   **Latency vs. Strategy Execution:** STOCKSTATS is fundamentally a *Statistical Arbitrage* and *Mean Reversion* engine, not a pure HFT nanosecond market-making engine. We generate edges measured in seconds/minutes, not microseconds. The $\approx 100$ microsecond execution advantage of a monolithic C++ engine is mathematically negated by the standard $20$ millisecond API latency of global cryptocurrency exchanges like Binance.
-*   **Quantitative Engineering Friction:** The Python ecosystem (`pandas`, `numpy`, `xgboost`) allows quantitative researchers to conceptualize, backtest, and deploy a complex math model (like Copula dependency) in 48 hours. Translating that same structural concept into C++ requires massive boilerplate code and mechanical engineering overhead, destroying the strategy iteration R&D cycle.
+### C. The Mathematical Mandate: Why Python over Java / C++
+It is a common reflexive impulse for enterprise software engineers to demand JVM-tuned Java or C++ for trading systems, citing execution speed. We have aggressively excluded Java and C++ from the STOCKSTATS architecture for three mathematically undeniable reasons:
 
-## 3. The Tech Stack Breakdown
+1.  **The Sub-Millisecond Delusion:** STOCKSTATS is fundamentally a *Statistical Arbitrage* and *Mean Reversion* engine, not a pure High-Frequency Trading (HFT) nanosecond market-making engine. We generate edges measured in seconds/minutes, not microseconds. The $\approx 100$ microsecond execution advantage of a monolithic Java/C++ engine is mathematically neutralized the moment our payload hits the public internet and encounters the standard $20+$ millisecond API latency of global exchanges like Binance. We do not need nanosecond internal execution; we need millisecond execution, which Python easily achieves.
+2.  **The LLVM Equalizer (`numba`):** The primary argument against Python is that the Global Interpreter Lock (GIL) and dynamic typing make array iteration unacceptably slow. We solve this not by changing languages, but by utilizing **Numba**. By wrapping our intensive mathematical functions (e.g., Hampel Filters, GARCH matrices) in `@njit`, we bypass the Python interpreter entirely. Numba uses the LLVM compiler library to translate our Python directly into optimized, C-level machine code just-in-time. We achieve Java speeds without writing Java boilerplate.
+3.  **The R&D Friction (The Death of Java in Quant):** If a PhD quantitative researcher designs a new Copula dependency matrix, it can be tested in `pandas` and deployed to production in Python within 48 hours. Translating that same multidimensional matrix into Java requires massive boilerplate code, fractured library support, and mechanical engineering overhead that fundamentally destroys the strategy iteration cycle. Furthermore, **Phase 8 (ML Meta-Labeling)** mandates the use of `xgboost` gradient boosted trees. Python is the undisputed native language of global Machine Learning. Forcing an ML-driven quant desk into Java is architectural sabotage. We optimize for Time-to-Market and R&D velocity.
+
+## 3. The Tech Stack Breakdown (Definitive Selections)
+
+We have permanently eliminated ambiguity from the architectural blueprint. The following technologies are the final, non-negotiable selections for the STOCKSTATS engine.
 
 ### I. Frontend (The Command Center)
-*   **Framework:** Next.js (React) or Vite + React. Selected for component modularity and deep ecosystem support for complex financial SVG charting.
-*   **State & Asynchronous Fetching:** React Query (for caching TimescaleDB responses) and contextual Zustand (for lightweight global state, e.g., the active user's `JWT Role`).
-*   **Design & Styling:** Tailwind CSS combined with customized, premium component libraries (e.g., shadcn/ui). Strict dark-mode requirement to reduce optical strain.
-*   **Mathematical Charting:** Lightweight Charts (TradingView) for rendering the real-time GARCH $\pm 2\sigma$ bands seamlessly alongside physical L1 ticks.
+*   **Framework Selection: Next.js (React)** 
+    *   *Why not Vue, Angular, or Vite?* Next.js provides unmatched Server-Side Rendering (SSR) capabilities which perfectly compliment the heavy initial JSON payloads required for initializing 500-period charting matrices. It also natively supports API routes, allowing us to build secure, server-side mid-tier proxies without spinning up a separate Node server.
+*   **State Management: Zustand & React Query**
+    *   *Why not Redux?* Redux requires massive boilerplate for a UI that fundamentally just acts as a passive surveillance radar. Zustand provides ultra-lightweight global state (JWT Roles), while React Query natively handles the aggressive polling and caching of the JSON feeds.
+*   **Design Typography:** Tailwind CSS + shadcn/ui. (Strict dark-mode protocol to reduce optical fatigue during continuous monitoring).
+*   **Charting Engine:** TradingView Lightweight Charts natively integrated via WebGL to prevent DOM locking when rendering 10,000+ localized GARCH ticks.
 
 ### II. Backend (The Microservices)
-*   **The Math/Execution Nodes:** Python 3.11+ running heavily optimized asynchronous architectures (`asyncio`, `aiohttp`, or `FastAPI` for local inter-service endpoints).
-*   **The Operations API:** Node.js with Express or NestJS (TypeScript), highly optimized for managing JWT authentication salts, RBAC routing middleware, and Server-Sent Events (SSE).
+*   **The Math/Execution Node Selection: Python + FastAPI**
+    *   *Why not Django or Flask?* Django is a heavy, synchronous monolith violently incompatible with High-Frequency WebSocket ingestion. Flask's async support is bolted-on. FastAPI was built from the ground up on `Starlette` and `uvicorn`, offering native asynchronous I/O and Pydantic data validation, which physically guarantees our JSON payloads have not drifted before hitting the Execution Router.
+*   **The Operations Web-Tier: Next.js API Routes (TypeScript)**
+    *   *Why not a separate Express server?* Consolidating the Role-Based JWT middleware and frontend routes into the singular Next.js monolith drastically reduces Docker overhead on the Basement Server while maintaining strict TypeScript interface parity between the frontend graphs and backend SQL queries.
 
 ### III. Data Storage & System Caching
-*   **The Immutable Ledger (Users/Logs):** PostgreSQL. Unmatched reliability and robust JSONB support for algorithmic auditing.
-*   **Point-in-Time Ledger (Market Data):** TimescaleDB (a PostgreSQL extension, keeping the stack fully relational). Optimized for massive `INSERT` velocities required for HFT ticks.
-*   **The Sub-Millisecond Cache:** Redis. Absolutely essential for maintaining the real-time L2 OBI depth and the rolling $N$-minute tick array for instant GARCH/OLS matrix updates.
-*   **The Event Bus:** Kafka or Redis Pub/Sub. The asynchronous nervous system connecting the decentralized microservices natively.
+*   **The Quantitative Ledger: TimescaleDB**
+    *   *Why not MongoDB or AWS Timestream?* MongoDB is a NoSQL document store; statistical mathematics (like rolling variances and Cointegration) fundamentally demand relational, columnar arrays, which NoSQL mangles. TimescaleDB is a native PostgreSQL extension. It gives us the aggressive, high-velocity `INSERT` speeds required for tick data (via partitioning/hypertables) while preserving 100% standard SQL logic for the complex relational `immutable_execution_ledger`.
+*   **The High-Frequency Cache: Redis**
+    *   *Why not Memcached?* Memcached is fundamentally ephemeral. Redis offers persistence-to-disk capabilities, advanced data structures (like Sorted Sets for maintaining the exact top 100 L2 Order Book Imbalances), and native Pub/Sub.
+*   **The Event Bus Selection: Redis Pub/Sub**
+    *   *Why not Apache Kafka?* Kafka is an institutional titan, but deploying an internal ZooKeeper/Kafka cluster on our singular Basement Server requires $>8GB$ of dedicated RAM, creating an unacceptable localized hardware bottleneck. Redis Pub/Sub is incredibly lightweight, perfectly fulfilling the event-driven requirements of Phases 1-8. We will re-evaluate Kafka strictly during the Phase 9 AWS Migration.
 
 ## 4. DevOps & Production Architecture
 *   **Containerization:** Docker. Every isolated microservice must have its own strict `Dockerfile` to guarantee perfect mathematically parity between the Quant's local laptop, the Basement Server, and the future AWS production cluster.
