@@ -69,6 +69,41 @@ We have permanently eliminated ambiguity from the architectural blueprint. The f
 
 For engineering teams accustomed to managing traditional "Standard VMs" (e.g., spinning up a Linux EC2 instance, logging in, and manually running `apt-get install python3 postgresql`), transitioning to a Dockerized Microservice architecture requires a fundamental paradigm shift. We must explicitly ban the installation of trading software directly onto the host OS Kernel for the following undeniable reasons:
 
+```mermaid
+graph TD
+    classDef danger fill:#ffebee,stroke:#f44336,stroke-width:2px;
+    classDef safe fill:#e8f5e9,stroke:#4caf50,stroke-width:2px;
+    classDef neutral fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px;
+
+    subgraph Legacy ["1. The Legacy Paradigm (Standard VM & 'Pets')"]
+        direction TB
+        OS[Ubuntu OS Kernel]:::neutral
+        APP[Python Script]:::danger
+        DB[(PostgreSQL)]:::danger
+        
+        APP -.->|Memory Leak Spikes to 32GB| OS
+        OS -.->|OOM Panic Kills Database| DB
+    end
+
+    subgraph Docker ["2. The STOCKSTATS Paradigm (Docker 'Cattle')"]
+        direction TB
+        HYP[Basement Server Hypervisor]:::neutral
+        
+        subgraph NetA ["Engine Virtual Network"]
+            CONT1[Python Container<br/>Strict RAM Fence: 8GB]:::safe
+        end
+        
+        subgraph NetB ["Storage Virtual Network"]
+            CONT2[(TimescaleDB Container)<br/>Strict RAM Fence: 16GB]:::safe
+        end
+        
+        HYP --- NetA
+        HYP --- NetB
+        CONT1 -.->|OOM Blocked by Fence.<br/>Container Instantly Restarts.| CONT1
+        CONT1 ===|TCP 5434 Bridge| CONT2
+    end
+```
+
 ### A. The "Pets vs. Cattle" Paradigm & Mathematical Reproducibility
 *   **The Problem with Standard VMs (Pets):** Traditional VMs are manually cultivated over years. If a Python dependency breaks (`pip install` collision), or if the C-compiler version for NumPy drifts, the underlying quantitative math changes silently. An engineer might say, "*It works on my MacBook, but the VM throws a Hampel Filter calculus error.*"
 *   **The Docker Solution (Cattle):** We deploy **Docker Containers**. A Dockerfile physically freezes the exact OS subset, the exact Python 3.11 binaries, and the exact C-compilers into an immutable disk image. If the algorithm executes correctly on a Developer's Macbook, we guarantee an identical, $100\%$ mathematically identical execution on the Basement Server, and later, the AWS Tokyo servers. The host VM (Proxmox/ESXi) acts *only* as a dumb hypervisor providing raw CPU/RAM.
