@@ -46,7 +46,31 @@ Compiling XGBoost gradient trees across 100 boosting rounds is computationally m
 
 ## Pillar 2: Environment Management & CI/CD
 
-An algorithmic trading machine with direct API access to live retirement accounts cannot be tested "in production." We rigorously adhere to the **12-Factor App Methodology**, strictly separating Configuration (secrets) from Code.
+An algorithmic trading machine with direct API access to live retirement accounts cannot be tested "in production." To ensure absolute reproducibility, security, and portability across local and cloud environments, STOCKSTATS rigorously adheres to the **12-Factor App Methodology**.
+
+### 2.0 The 12-Factor Mandate
+
+Before deploying any logic, engineers must comply with these non-negotiable architectural constraints for our Python microservices:
+
+```mermaid
+graph TD
+    classDef factor fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    classDef core fill:#e3f2fd,stroke:#2196f3,stroke-width:2px;
+    
+    A[STOCKSTATS Repo]:::core --> B(I. Codebase:<br/>One logic repo, multiple deployed targets)
+    B --> C(II. Dependencies:<br/>Strict 'requirements.txt' isolation)
+    C --> D(III. Configuration:<br/>Secrets injected via '.env' only)
+    D --> E(IV. Backing Services:<br/>TimescaleDB/Redis treated as attached URLs)
+    E --> F(V. Build, Release, Run:<br/>Immutable Docker deployments)
+    F --> G(X. Dev/Prod Parity:<br/>Identical OS environments via Docker)
+```
+
+**Core Adoptions for STOCKSTATS:**
+*   **I. Codebase:** We maintain a single Git repository (`origin/main`). The *exact same Python code* runs in Dev, Staging, and Production.
+*   **II. Dependencies:** All Python quantitative libraries (Numba, Pandas) are explicitly declared and locked in `requirements.txt`. There is zero implicit reliance on Ubuntu OS-level packages.
+*   **III. Configuration (The Golden Rule):** Binance Trading API keys, `JWT` token salts, and TimescaleDB passwords are **systematically prohibited** from entering the codebase. They must be injected into the Docker containers at execution time via local `.env` bindings.
+*   **IV. Backing Services:** TimescaleDB and Redis are treated as loosely coupled attached resources. If the database physical IP changes (e.g., migrating to AWS RDS), the Python codebase does not change; only the `.env` target URL changes.
+*   **X. Dev/Prod Parity:** We violently minimize the gap between environments. Development, Staging, and Production operate on the exact same Linux distributions driven by Docker Compose.
 
 ### 2.1 The Three Isolated Environments (Single Bare-Metal)
 Because all three stacks live on the identical Basement Server initially, we achieve isolation entirely through **Docker Networking** and **Port Mapping**. They must never share a database instance.
