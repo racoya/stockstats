@@ -123,3 +123,12 @@ graph TD
 ### E. Continuous Integration / Continuous Deployment (CI/CD)
 *   **GitHub Actions:** No human is legally permitted to SSH into the Production VM to execute a `git pull`. 
 *   **The Deployment Gate:** Pushing code to the `main` branch automatically triggers a remote GitHub server to boot a virtual instance, download your 500-period Backtesting arrays, and mathematically run your new Python code against the historical 2021 Bitcoin crash data. Only if the automated tests prove the algorithmic edge remains intact ($E(R)>0$) allows the CI/CD pipeline to push the frozen Docker Image directly into the physical Basement Server.
+
+### F. The "Overkill" Delusion (Why we reject "Lighter" alternatives)
+It is a common reflexive impulse for small teams to perceive Docker and TimescaleDB as "overkill" and request a "lightweight" starting point (e.g., bare Python scripts writing to `SQLite` or `.CSV` files on the host VM). **We explicitly ban this approach.** In algorithmic trading, what feels "lightweight" is mathematically catastrophic for the following structural reasons:
+
+*   **The SQLite Trap (Concurrency Death):** SQLite cannot handle simultaneous asynchronous writes. If the CCXT ingestion loop is writing 50 ticks per second, and the Quantitative Engine simultaneously attempts to read that data to calculate a Moving Average matrix, SQLite will physically lock the database. `TimescaleDB` is strictly necessary to handle continuous, aggressive write/read collisions without blocking the Python execution thread.
+*   **The Dependency Trap (Silently Changing Math):** If a team skips Docker to "save time" and simply installs Python libraries globally on the VM, they trigger a timebomb. Within months, `pip install` conflicts will alter the underlying `numpy` or `pandas` versions. If the math libraries silently change on the server, the algorithm begins executing physically different mathematical trades than what the engineer backtested on their local machine.
+*   **The Rewrite Trap (Throwaway Architecture):** Code built on bare VMs processing CSV files cannot be safely migrated to the Cloud without a complete structural rewrite. Building it inside Docker *from day one* is actually the leanest approach, as it prevents destroying two months of engineering time later.
+
+**Docker Compose + TimescaleDB + Python/Numba is not "Enterprise Overkill". It is the absolute Minimum Viable Architecture required to mathematically protect live capital.**
