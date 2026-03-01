@@ -9,27 +9,13 @@ These documents bridge the conceptual 8-Phase Roadmap into step-by-step physical
 
 ## 🏗️ Sprint Execution Plans
 
-### 🖥️ Prerequisites
-*   **[Hardware & Infrastructure Sizing Matrix](00a_hardware_specifications.md)** 
-    * Details the exact physical CPU, RAM, NVMe SSD, and Geo-Location (Latency) requirements for the local development MVP and the production AWS GPU clusters.
-*   **[Centralized Remote Development Environment](00b_remote_development_environment.md)**
-    * Step-by-step Ubuntu setup logic instructing the dev team on how to authenticate via Tailscale VPN, provision isolated SSH keys, securely share the TimescaleDB Docker array, and program natively using VS Code Remote.
-*   **[Antigravity AI Integration & Collaboration](00c_antigravity_ai_integration.md)**
-    * Protocols for how human engineers must prompt the AI (Context Injection, View File Loops) to safely translate strategy into executed code without hallucinations.
-*   **[Git & GitHub Collaboration Workflows](00d_git_and_github_workflows.md)**
-    * Defines the Trunk-Based Development model, branching naming conventions (`feat/X.X`), strict Code Review Pull Request policies, and GitHub Issue Kanban tracking.
-*   **[Environment Management & CI/CD](00e_environment_management.md)**
-    * Enforces the 12-Factor App methodology physically separating the Local DevBox, Cloud Staging (Paper Trading), and AWS Tokyo Production environments using `.env` injection and GitHub Actions.
-
----
-
 ### Phase 1 & 2: Infrastructure & Data Ingestion (The Scrubber)
 Focus purely on standing up the bare metal and ensuring the data stream is mathematically sterile before we attempt to write any Quantitative Logic.
 
-1. **[Sprint 1: The Core Infrastructure Setup](01_sprint_1_infrastructure.md)**
-   * Deploying the dual-database architecture.
-   * Configuring persistent Docker volumes for S3 WAL Backups.
-   * Establishing the strictly locked Python virtual environment.
+1. **[Sprint 1: Infrastructure & DevOps](01_sprint_1_infrastructure_devops.md)**
+   * Defining Hardware, Environment Isolation (Dev/Staging/Prod), and Trunk-Based Git workflows.
+   * Establishing the VS Code Remote Development environment for the distributed team.
+   * Deploying the dual-database architecture and the strictly locked Python virtual environment.
 
 2. **[Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md)**
    * Building the asynchronous `ccxt.pro` WebSocket listeners.

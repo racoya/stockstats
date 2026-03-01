@@ -189,4 +189,4 @@ async def route_to_databases(tick: dict, pg_pool, redis_client):
 ```
 
 ---
-**⬅️ Previous:** [Sprint 1: Core Infrastructure](01_sprint_1_infrastructure.md) | **Next:** [Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md) ➡️
+**⬅️ Previous:** [Sprint 1: Infrastructure & DevOps](01_sprint_1_infrastructure_devops.md) | **Next:** [Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md) ➡️
