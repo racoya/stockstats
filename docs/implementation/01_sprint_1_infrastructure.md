@@ -124,4 +124,4 @@ pip install -r requirements.txt
 ```
 
 ---
-**⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️
+**⬅️ Previous:** [Hardware Sizing Matrix](00a_hardware_specifications.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️

@@ -9,6 +9,12 @@ These documents bridge the conceptual 8-Phase Roadmap into step-by-step physical
 
 ## 🏗️ Sprint Execution Plans
 
+### 🖥️ Prerequisites
+*   **[Hardware & Infrastructure Sizing Matrix](00a_hardware_specifications.md)** 
+    * Details the exact physical CPU, RAM, NVMe SSD, and Geo-Location (Latency) requirements for the local development MVP and the production AWS GPU clusters.
+
+---
+
 ### Phase 1 & 2: Infrastructure & Data Ingestion (The Scrubber)
 Focus purely on standing up the bare metal and ensuring the data stream is mathematically sterile before we attempt to write any Quantitative Logic.
 
