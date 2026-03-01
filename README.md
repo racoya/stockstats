@@ -36,14 +36,14 @@ graph TD
     subgraph Architecture ["STOCKSTATS Quantitative Engine Topography"]
         
         GW[Data Ingestion Gateway<br/>Python + CCXT]:::dev
-        DB[(TimescaleDB Layer)]:::prod
-        CACHE[(Redis Sub-ms Cache)]:::dev
+        DB[("TimescaleDB Layer")]:::prod
+        CACHE[("Redis Sub-ms Cache")]:::dev
         
         LOGIC[Quantitative Logic Engine<br/>Numba JIT Math Arrays]:::dev
         SOR[Smart Order Router<br/>Fractional Kelly + VWAP]:::prod
         
         GW -->|Pipes L1 Ticks| DB
-        GW -->|Pipes L2 Depth (OBI)| CACHE
+        GW -->|"Pipes L2 Depth (OBI)"| CACHE
         DB -->|Historical Scans| LOGIC
         CACHE -->|Real-time Depth| LOGIC
         LOGIC -->|Calculates E_R > 0| SOR
