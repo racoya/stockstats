@@ -222,135 +222,190 @@ We treat the AI (Antigravity/Claude) not as a subservient code-generator, but as
 
 ---
 
-## Pillar 6: Core Infrastructure Scaffolding
+## Pillar 6: The Execution Runbook (Zero-to-One Provisioning)
 
-With DevOps workflows locked, we physically build the Phase 1 Foundation: the TimescaleDB/Redis backend and the strict Python virtual environment.
+With the theoretical foundations locked (Pillars 1-5), the Infrastructure Engineer executes this precise sequence to physically manifest the STOCKSTATS architecture. This guide takes a blank Ubuntu 24.04 LTS bare-metal Basement Server and provisions it fully to host remote developers.
 
-### 🗺️ Infrastructure Architecture (Basement Server Topology)
+### Step 1: The Cryptographic Network Layer (Tailscale & UFW)
+Before any code touches the server, we must build the encrypted perimeter and lock the gates.
 
-```mermaid
-graph TD
-    classDef prod fill:#ffebee,stroke:#f44336,stroke-width:2px;
-    classDef dev fill:#e3f2fd,stroke:#2196f3,stroke-width:2px;
-    classDef vpn fill:transparent,stroke:#3498db,stroke-dasharray: 5 5;
+1.  **Install the Mesh VPN:** 
+    ```bash
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up --ssh
+    ```
+    *Note the assigned 100.x.y.z IP address. This is now the ONLY way to reach the server.*
+2.  **Lock the Firewall (UFW):**
+    ```bash
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    sudo ufw allow in on tailscale0
+    sudo ufw enable
+    ```
+3.  **Harden SSH Configurations (`/etc/ssh/sshd_config`):** Disable legacy vulnerabilities.
+    ```text
+    PasswordAuthentication no
+    PermitRootLogin no
+    PubkeyAuthentication yes
+    ```
+    *Execute `sudo systemctl restart ssh`.*
+
+### Step 2: Linux Role-Based Access Control (RBAC)
+We never operate as `root`. We provision isolated engineering profiles.
+
+1.  **Create the Quant Developer Account:**
+    ```bash
+    sudo adduser dev_quant
+    sudo usermod -aG sudo dev_quant
+    sudo usermod -aG docker dev_quant  # Permits container execution without sudo
+    ```
+2.  **Inject the ED25519 Public Key:**
+    From your MacBook, generate a modern key (`ssh-keygen -t ed25519`). Copy the `.pub` file contents.
+    On the server:
+    ```bash
+    sudo su - dev_quant
+    mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    nano ~/.ssh/authorized_keys # Paste public key here
+    chmod 600 ~/.ssh/authorized_keys
+    exit
+    ```
+
+### Step 3: Directory Scaffolding & Secrets Injection
+The application architecture demands strict multi-directory separation.
+
+1.  **Build the Physical Repository:**
+    ```bash
+    sudo mkdir -p /opt/stockstats/{backend,docs,frontend}
+    sudo mkdir -p /opt/stockstats/backend/{core,ingestion,execution,database}
+    sudo mkdir -p /opt/stockstats/docker-volumes/{timescaledb,redis}
+    sudo chown -R dev_quant:dev_quant /opt/stockstats
+    cd /opt/stockstats
+    ```
+2.  **Inject the 12-Factor `.env` Bindings:**
+    ```bash
+    nano .env
+    ```
+    ```env
+    # Database Configuration (Timescale)
+    POSTGRES_USER=stockstats_admin
+    POSTGRES_PASSWORD=super_secure_dev_password_123!
+    POSTGRES_DB=stockstats
+    POSTGRES_HOST=localhost
+    POSTGRES_PORT=5432
     
-    subgraph DevBox ["Linux Basement Server (Bare Metal)"]
-        
-        subgraph DevNet ["Development Network"]
-            TSDB_DEV[(TimescaleDB :5432)]:::dev
-            REDIS_DEV[(Redis :6379)]:::dev
-            PYTHON_DEV[VS Code Python Env<br/>Math & Shadow Engine]:::dev
-        end
-        
-        subgraph ProdNet ["Production Docker Network (Isolated)"]
-            TSDB_PROD[(TimescaleDB :5434)]:::prod
-            PROD_APP[StockStats Prod Container<br/>Live Trading API Keys]:::prod
-        end
-        
-        PYTHON_DEV -->|Reads| TSDB_DEV
-        PROD_APP -->|Executes Binance| TSDB_PROD
-    end
+    # In-Memory Configuration (Redis)
+    REDIS_HOST=localhost
+    REDIS_PORT=6379
     
-    subgraph Remote ["Remote Developer (MacBook)"]
-        VS["VS Code Remote-SSH"]
-    end
+    # Execution Engine Protocol
+    STOCKSTATS_EXECUTION_MODE=SHADOW
+    ```
+3.  **Sanitize the Git Commit Feed:**
+    ```bash
+    nano .gitignore
+    ```
+    ```text
+    .env
+    venv/
+    __pycache__/
+    docker-volumes/
+    .DS_Store
+    ```
+
+### Step 4: Provisioning the Dockerized Storage Layer
+We explicitly separate the databases into Linux containers with violent memory limitations to prevent OOM panics.
+
+1.  **Construct the Orchestrator:**
+    ```bash
+    nano docker-compose.yml
+    ```
+    ```yaml
+    version: '3.8'
+    services:
+      timescaledb:
+        image: timescale/timescaledb-ha:pg15-latest
+        container_name: stockstats_timescaledb
+        environment:
+          - POSTGRES_USER=${POSTGRES_USER}
+          - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          - POSTGRES_DB=${POSTGRES_DB}
+        volumes:
+          - ./docker-volumes/timescaledb:/home/postgres/pgdata/data
+        ports:
+          - "5432:5432"
+        deploy:
+          resources:
+            limits:
+              memory: 16G # Critical guard against array queuing
+        logging:
+          driver: "json-file"
+          options:
+            max-size: "50m"
+            max-file: "3"
+        restart: unless-stopped
     
-    VS -.->|Secure Tailscale VPN| PYTHON_DEV
-```
+      redis:
+        image: redis:7-alpine
+        container_name: stockstats_redis
+        command: redis-server --save 60 1 --loglevel warning
+        volumes:
+          - ./docker-volumes/redis:/data
+        ports:
+          - "6379:6379"
+        deploy:
+          resources:
+            limits:
+              memory: 4G # Bound cache to prevent OS starvation
+        restart: unless-stopped
+    ```
+2.  **Ignite the Containers:**
+    ```bash
+    docker compose up -d
+    docker ps  # Verify healthy ports 5432 and 6379
+    ```
 
----
+### Step 5: The Python Quantitative Core
+The system relies on LLVM compilers (`numba`). Version parity is legally binding.
 
-### Step 6.1: Directory Scaffolding & Configuration
-Create the secure repository skeleton on the Basement Server:
+1.  **Construct the Virtual Vacuum:**
+    ```bash
+    python3.11 -m venv venv
+    source venv/bin/activate
+    ```
+2.  **Lock the Dependencies (`requirements.txt`):**
+    ```text
+    ccxt[async]==4.2.35      # Async Exchange Websockets
+    numpy==1.26.4            # Array manipulation (Must identically match Numba limits)
+    pandas==2.2.1            # Time-series DataFrames
+    numba==0.59.1            # LLVM Math Compiler for Hampel/GARCH
+    asyncpg==0.29.0          # Async PostgreSQL Driver (Fast Inserts)
+    redis==5.0.3             # Async Redis Pub/Sub
+    python-dotenv==1.0.1     # Environment variable injection
+    ```
+3.  **Compile:**
+    ```bash
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
 
-```bash
-mkdir -p backend/core backend/ingestion backend/execution backend/database
-mkdir -p docker-volumes/timescaledb docker-volumes/redis
-```
+### Step 6: The Remote Developer Verification (Final Application)
+The infrastructure is ready. Now the human engineer remotely boots the VS Code GUI interface.
 
-Create `.env` (Never commit this):
-```env
-POSTGRES_USER=stockstats_admin
-POSTGRES_PASSWORD=super_secure_dev_password_123!
-POSTGRES_DB=stockstats
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-REDIS_HOST=localhost
-REDIS_PORT=6379
-STOCKSTATS_EXECUTION_MODE=SHADOW
-```
-
-Create `.gitignore`:
-```gitignore
-.env
-venv/
-__pycache__/
-docker-volumes/
-.DS_Store
-```
-
-### Step 6.2: The Dockerized Storage Layer
-Create `docker-compose.yml` to structurally isolate the dual-database architecture. We explicitly enforce `deploy.resources` to prevent a runaway query from triggering a system-wide OS kernel panic (Out-of-Memory Kill).
-
-```yaml
-version: '3.8'
-services:
-  timescaledb:
-    image: timescale/timescaledb-ha:pg15-latest
-    container_name: stockstats_timescaledb
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - ./docker-volumes/timescaledb:/home/postgres/pgdata/data
-    ports:
-      - "5432:5432"
-    deploy:
-      resources:
-        limits:
-          memory: 16G # Prevents DB from starving the Python Engine
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: stockstats_redis
-    command: redis-server --save 60 1 --loglevel warning
-    volumes:
-      - ./docker-volumes/redis:/data
-    ports:
-      - "6379:6379"
-    deploy:
-      resources:
-        limits:
-          memory: 4G # Redis memory bound for OBI caching
-    restart: unless-stopped
-```
-Execute logic: `docker-compose up -d`
-
-### Step 6.3: The Python Quantitative Core
-Isolate the math engine.
-```bash
-python3.11 -m venv venv
-source venv/bin/activate
-```
-
-Create `requirements.txt` locking the Numba/Numpy versions:
-```txt
-ccxt[async]==4.2.35      # Async Exchange Websockets
-numpy==1.26.4            # Array manipulation (Must match Numba requirements)
-pandas==2.2.1            # Time-series DataFrames
-numba==0.59.1            # LLVM Math Compiler for Hampel/GARCH
-asyncpg==0.29.0          # Async PostgreSQL Driver (Fast Inserts)
-redis==5.0.3             # Async Redis Pub/Sub
-python-dotenv==1.0.1     # Environment variable injection
-```
-Install: `pip install -r requirements.txt`
+1.  **MacBook Setup:** Install the `Remote - SSH` extension authored by Microsoft in Visual Studio Code.
+2.  **Configure the Local SSH Map (`~/.ssh/config`):**
+    ```text
+    Host StockStats-Basement
+        HostName 100.x.y.z  # The Tailscale IP
+        User dev_quant
+        IdentityFile ~/.ssh/id_ed25519
+    ```
+3.  **Connect and Verify:**
+    *   Click the green `><` icon in VS Code's bottom left.
+    *   Select "Connect to Host" $\rightarrow$ `StockStats-Basement`.
+    *   Once connected, select "Open Folder" $\rightarrow$ `/opt/stockstats/`.
+    *   Open a new terminal inside VS Code. It will read `dev_quant@basement_server: /opt/stockstats$`. 
+    
+**The Foundation is poured.** You are now physically ready to begin Sprint 2: Coding the Ingestion Engine.
 
 ---
 **⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️
