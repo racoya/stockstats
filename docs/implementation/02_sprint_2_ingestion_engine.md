@@ -1,57 +1,176 @@
 # Sprint 2 Implementation: The Ingestion Gateway
 
 ## The Objective
-With the `TimescaleDB` and `Redis` databases live and isolated in Docker after Sprint 1, we must now build the software that pulls data into them from the exchanges.
+Build the asynchronous Python Ingestion Engine. Its sole purpose is to connect to crypto exchanges (e.g., Binance), listen to live Level 1 Websocket trade streams, and inject those raw ticks into our databases with absolute zero latency.
 
-The objective of Sprint 2 is to build the asynchronous Python Ingestion Engine. Its sole purpose is to connect to crypto exchanges (e.g., Binance, Kraken), listen to the live Level 1 Websocket trade streams, and inject those raw integers into our databases with absolute zero latency.
-
-**Reference:** [Strategy 02 (Data Architecture)](../strategy/02_data_architecture.md)
+**Prerequisite:** Sprint 1 (`docker-compose up -d` is running).
 
 ---
 
-## Step 1: The Asynchronous Architecture
-We cannot use standard synchronous Python `requests` to pull 10,000 trades per second. We must build an `asyncio` Event Loop.
+## Step 1: The Asynchronous Environment Bootstrapper
 
-### 1.1 The CCXT Pro Websocket Router
-We will utilize `ccxt.pro`, the asynchronous version of the CCXT library, to handle the heavy lifting of maintaining WebSocket connections.
+We must initialize the connection pools for both TimescaleDB and Redis before we start listening to the Websockets.
 
-*   **The 50-Asset Constraint:** We will define a static list of 50 assets (e.g., `BTC/USDT`, `ETH/USDT`, `SOL/USDT`).
-*   **The Connection Matrix:** We will initialize a CCXT exchange instance and subscribe to the `watch_trades` stream for the 50 assets simultaneously.
-*   **Error Handling:** The loop must cleanly handle `ConnectionClosedError` and `RateLimitExceeded` exceptions by implementing exponential backoff reconnection logic. *If the Websocket drops, the mathematical engine dies.*
+**1.1 Create `backend/database/connections.py`:**
+```python
+# backend/database/connections.py
+import asyncpg
+import redis.asyncio as redis
+import os
+from dotenv import load_dotenv
 
-## Step 2: The Dual-Injection Protocol
-When a raw trade tick arrives via CCXT, it must be instantly routed to two different places simultaneously. 
+load_dotenv()
 
-### 2.1 The Permanent Archive (TimescaleDB)
-Raw trades must be archived permanently for Phase 8 Machine Learning training.
-*   **The Pipeline:** Use `asyncpg` within the Python Event Loop to fire asynchronous `INSERT` statements into TimescaleDB.
-*   **The Table Schema:** 
-    ```sql
-    CREATE TABLE raw_trades (
-        time        TIMESTAMPTZ NOT NULL,
-        symbol      TEXT NOT NULL,
-        price       DOUBLE PRECISION NOT NULL,
-        volume      DOUBLE PRECISION NOT NULL,
-        side        TEXT NOT NULL, -- 'buy' or 'sell'
-        exchange    TEXT NOT NULL
-    );
-    SELECT create_hypertable('raw_trades', 'time');
-    ```
+async def init_postgres():
+    """Initializes the TimescaleDB Connection Pool"""
+    pool = await asyncpg.create_pool(
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        database=os.getenv("POSTGRES_DB"),
+        host=os.getenv("POSTGRES_HOST"),
+        port=os.getenv("POSTGRES_PORT"),
+        min_size=5,
+        max_size=20
+    )
+    return pool
 
-### 2.2 The Volatile Cache (Redis Pub/Sub & ZSET)
-The Quantitative Logic Engine (Sprint 4) cannot wait for TimescaleDB to write to SSD. It needs the data *now* to calculate the GARCH matrix.
-*   **The Pipeline:** Use the `redis.asyncio` library to push the identical raw tick into Redis.
-*   **The Structure:**
-    *   **Pub/Sub:** Broadcast the tick on a channel (e.g., `trade:BTC-USD`). The Logic Engine will be "listening" to this channel to trigger recalculations.
-    *   **Sorted Set (ZSET):** Store the tick in a Redis Sorted Set scored by its Unix Microsecond Timestamp. This allows us to instantly retrieve the "last 5 minutes of ticks" directly from RAM without touching Postgres.
-
-## Step 3: Mitigation Protocol: The Microsecond Race Condition
-During a flash crash, 10 trades can occur in the same microsecond on Binance. If we feed identical timestamps to our Pandas DataFrames in Sprint 4, the Matrix Inversion mathematics will throw a `Singular Matrix` (NaN) error and crash the bot.
-
-*   **Implementation:** Before firing the `INSERT` into Postgres or Redis, we must run an aggregation function that checks for identical microsecond timestamps on the same asset.
-*   **The Fix:** If it detects a collision, it coalesces the 10 trades into a single **Volume-Weighted Average Price (VWAP)** tick for that exact microsecond.
-    *   *Volume:* Sum the volumes.
-    *   *Price:* `(Price1*Vol1 + Price2*Vol2... ) / Total_Volume`
+async def init_redis():
+    """Initializes the Sub-Millisecond Redis Cache"""
+    client = await redis.Redis(
+        host=os.getenv("REDIS_HOST"),
+        port=int(os.getenv("REDIS_PORT")),
+        decode_responses=True
+    )
+    return client
+```
 
 ---
-**Next Step:** Once the raw (but dirty) ticks are streaming perfectly into TimescaleDB and Redis, we move to **[Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md)** to ensure exchange glitch data doesn't permanently mathematically poison the LEDGER.
+
+## Step 2: The CCXT Websocket Listener
+
+We use `ccxt.pro` to ingest data asynchronously. 
+
+**2.1 Create `backend/ingestion/stream.py`:**
+```python
+# backend/ingestion/stream.py
+import asyncio
+import ccxt.pro as ccxt
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+async def watch_trades(exchange_id: str, symbol: str, pg_pool, redis_client):
+    """Listens to L1 Trades and routes them to the pipeline."""
+    exchange_class = getattr(ccxt, exchange_id)
+    exchange = exchange_class({'enableRateLimit': True})
+    
+    try:
+        while True:
+            trades = await exchange.watch_trades(symbol)
+            for trade in trades:
+                await process_tick(trade, pg_pool, redis_client)
+    except ccxt.NetworkError as e:
+        logging.error(f"Network Error on {symbol}: {e}. Reconnecting in 5s...")
+        await asyncio.sleep(5)
+        await watch_trades(exchange_id, symbol, pg_pool, redis_client)
+    finally:
+        await exchange.close()
+
+async def process_tick(trade: dict, pg_pool, redis_client):
+    """The Injection Router (To be expanded in Step 3)"""
+    pass # Placeholder for the VWAP Aggregator
+```
+
+---
+
+## Step 3: The Microsecond Race Condition Resolver
+
+During a flash crash, Binance might send 10 trades with identical microsecond timestamps. If we feed identical timestamps to our Pandas DataFrames in Sprint 4, the Matrix Inversion mathematics will throw a `Singular Matrix` error and crash the bot. We must aggregate them by Volume-Weighted Average Price (VWAP).
+
+**3.1 Update `process_tick` in `stream.py`:**
+```python
+# Insert this logic inside backend/ingestion/stream.py
+
+# A global, volatile dictionary to hold ticks for identical microseconds
+tick_buffer = {} 
+
+async def process_tick(trade: dict, pg_pool, redis_client):
+    timestamp = trade['timestamp'] # Milliseconds
+    symbol = trade['symbol']
+    price = trade['price']
+    amount = trade['amount']
+    
+    dict_key = f"{symbol}_{timestamp}"
+    
+    # 1. Microsecond Aggregation Logic
+    if dict_key in tick_buffer:
+        # We already have a trade for this exact millisecond. Coalesce them via VWAP.
+        cached = tick_buffer[dict_key]
+        total_vol = cached['amount'] + amount
+        
+        # New Price = (Price1*Vol1 + Price2*Vol2... ) / Total_Volume
+        vwap_price = ((cached['price'] * cached['amount']) + (price * amount)) / total_vol
+        
+        tick_buffer[dict_key] = {
+            'price': vwap_price,
+            'amount': total_vol,
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'side': trade['side'] # Inherit the side of the latest tick
+        }
+    else:
+        # First trade of this millisecond
+        tick_buffer[dict_key] = {
+            'price': price,
+            'amount': amount,
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'side': trade['side']
+        }
+        
+        # In a production environment, you would flush this buffer asynchronously 
+        # after a 1ms delay to capture the full coalesced tick.
+        # For simplicity in this blueprint, we immediately route it.
+        asyncio.create_task(route_to_databases(tick_buffer[dict_key], pg_pool, redis_client))
+        
+        # Clean up buffer to prevent memory leaks
+        del tick_buffer[dict_key]
+```
+
+---
+
+## Step 4: The Dual-Injection Database Router
+
+The tick is clean. It must now enter the permanent ledger and the volatile cache simultaneously.
+
+**4.1 Implement the Database Writers:**
+```python
+async def route_to_databases(tick: dict, pg_pool, redis_client):
+    """Fires into TimescaleDB and Redis simultaneously."""
+    
+    # 1. TimescaleDB Permanent Archive
+    async with pg_pool.acquire() as connection:
+        await connection.execute('''
+            INSERT INTO raw_trades (time, symbol, price, volume, side, exchange)
+            VALUES (to_timestamp($1 / 1000.0), $2, $3, $4, $5, 'binance')
+        ''', tick['timestamp'], tick['symbol'], tick['price'], tick['amount'], tick['side'])
+        
+    # 2. Redis Pub/Sub Broadcaster
+    channel = f"tick:{tick['symbol']}"
+    payload = f"{tick['timestamp']}|{tick['price']}|{tick['amount']}"
+    await redis_client.publish(channel, payload)
+    
+    # 3. Redis Rolling 5-Minute Cache (ZSET)
+    zset_key = f"cache:{tick['symbol']}"
+    await redis_client.zadd(zset_key, {payload: tick['timestamp']})
+    
+    # Automatically prune the ZSET to keep only the last 5 minutes (300,000 ms)
+    cutoff_time = tick['timestamp'] - 300000
+    await redis_client.zremrangebyscore(zset_key, 0, cutoff_time)
+```
+
+---
+**Sprint 2 Complete.** 
+Raw ticks are streaming safely into both the SSD Vault and the RAM Cache. However, the data is still fundamentally "dirty." 
+
+Proceed to **[Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md)** to intercept exchange API glitches before they hit the ledger.

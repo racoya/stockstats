@@ -1,72 +1,130 @@
 # Sprint 1 Implementation: Core Infrastructure
 
 ## The Objective
-To physically construct the Phase 1 Foundation of the STOCKSTATS architecture on the local machine. We must scaffold the isolated dual-database environment (TimescaleDB for permanent SSD storage, Redis for sub-millisecond RAM caching) and establish the highly-controlled Python environment.
+Physically construct the Phase 1 Foundation of STOCKSTATS on the local machine. This involves scaffolding the isolated dual-database environment (TimescaleDB and Redis) and establishing the highly-controlled Python environment. 
 
-**Reference:** [Strategy 02 (Data Architecture)](../strategy/02_data_architecture.md), [Strategy 09 (Tech Stack)](../strategy/09_technology_stack.md)
-
----
-
-## Step 1: The Dockerized Storage Layer
-
-The bedrock of a quantitative system is immutable, sterilized data. We do not install databases natively on the macOS host; we isolate them in Docker to guarantee 1:1 parity with the future AWS production cluster.
-
-### 1.1 The `docker-compose.yml` File
-We will create a `docker-compose.yml` file at the root of the project to orchestrate the internal network.
-
-**Specifications:**
-*   **TimescaleDB:** We will pull the official `timescale/timescaledb-ha:pg15` image. 
-    *   *Why HA?* The High Availability image includes the tools required for our future Step 3.B "Off-Site S3 WAL Archiving" mandate (Strategy 11).
-    *   *Volume:* We must map a local physical directory (e.g., `./docker-volumes/timescaledb/`) to `/home/postgres/pgdata/data` to ensure our mathematical data survives container restarts.
-    *   *Port:* `5432:5432`
-*   **Redis:** We will pull the official `redis:7-alpine` image to maintain a tiny infrastructural footprint.
-    *   *Volume:* Map `./docker-volumes/redis/` to `/data`.
-    *   *Port:* `6379:6379`
-    *   *Persistence:* We will configure Redis to save to disk occasionally (`--save 60 1`), but its primary role is volatile L2 OBI array caching.
-
-### 1.2 Validation Check
-*   Run `docker-compose up -d`.
-*   Use a tool like TablePlus or DBeaver to successfully connect to `localhost:5432` with the defined credentials.
-*   Run `SELECT default_version, installed_version FROM pg_available_extensions WHERE name = 'timescaledb';` to mathematically verify the time-series extension is active.
+**Prerequisites:** Docker Desktop and Python 3.11 installed locally.
 
 ---
 
-## Step 2: The Python Quantitative Core
+## Step 1: Directory Scaffolding & Environment Variables
+Before touching Docker or Python, we must build the physical directory structure to keep the repo clean and secure.
 
-The `backend/` directory houses the statistical brains of the operation. We must isolate its dependencies flawlessly.
-
-### 2.1 Virtual Environment
-We will create a strict `venv` to prevent global macOS package collisions.
-*   `python3.11 -m venv venv`
-*   `source venv/bin/activate`
-
-### 2.2 The `requirements.txt` Freeze
-We will define the exact libraries required for the Ingestion and Logic engines. Version locking is critical to prevent a future update from breaking the Numba LLVM compiler.
-
-**Core Packages:**
-*   `ccxt[async]` (For exchange routing)
-*   `asyncio`, `aiohttp` (For the Websocket ingestion loops)
-*   `numpy==1.26.4`, `pandas==2.2.1` (For array manipulation)
-*   `numba==0.59.1` (For JIT-compiling the Hampel Filter and Cointegration math)
-*   `asyncpg` (For high-velocity Inserts into TimescaleDB without blocking the Python event loop)
-*   `redis.asyncio` (For sub-millisecond Pub/Sub and caching)
-
-### 2.3 Directory Scaffolding
-We will build the physical folder structure required for the microservice:
-```plaintext
-STOCKSTATS/
-├── backend/
-│   ├── main.py                # The entrypoint for the Docker service
-│   ├── core/                  # The Math (Hampel, GARCH, Cointegration)
-│   ├── ingestion/             # The WebSocket Listeners (Binance, Kraken)
-│   ├── execution/             # (Phase 3) The Manual Kelly Sizing formatter
-│   └── database/              # The asyncpg connection pools and Redis wrappers
+**1.1 Execute Terminal Commands:**
+```bash
+# Ensure you are in the root of the stockstats repository
+mkdir -p backend/core backend/ingestion backend/execution backend/database
+mkdir -p docker-volumes/timescaledb
+mkdir -p docker-volumes/redis
 ```
 
-## Step 3: Git & Environment Security
+**1.2 Create the `.env` Configuration:**
+Create a file named `.env` at the root of the project. **Never commit this file.**
+```env
+# /stockstats/.env
 
-*   Create `.gitignore` to explicitly ban `venv/`, `docker-volumes/`, `__pycache__/`, and `.env` from ever touching the repository.
-*   Create an `.env.example` template detailing the PostgreSQL connection strings and the (blank) Binance `API_KEY` and `API_SECRET`.
+# PostgreSQL / TimescaleDB Target
+POSTGRES_USER=stockstats_admin
+POSTGRES_PASSWORD=super_secure_dev_password_123!
+POSTGRES_DB=stockstats
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+
+# Redis Cache
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Execution Environment
+STOCKSTATS_EXECUTION_MODE=SHADOW # Strict adherence to Phase 1 Rules
+```
+
+**1.3 Secure the Repository:**
+Create or update `.gitignore` at the root:
+```gitignore
+# /stockstats/.gitignore
+.env
+venv/
+__pycache__/
+docker-volumes/
+.DS_Store
+```
 
 ---
-**Next Step:** Once Sprint 1 is executed and the baseline databases are running efficiently on `localhost`, we immediately pivot to **[Sprint 2: The Ingestion Engine](02_sprint_2_ingestion_engine.md)** to begin physically pulling L1 ticks.
+
+## Step 2: The Dockerized Storage Layer
+We isolate the databases in Docker to guarantee 1:1 parity with future production servers and prevent local OS corruption.
+
+**2.1 Create `docker-compose.yml`:**
+Create this file at the root of the project.
+```yaml
+# /stockstats/docker-compose.yml
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg15-latest
+    container_name: stockstats_timescaledb
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      # Map the physical host folder to the internal DB structure for persistence
+      - ./docker-volumes/timescaledb:/home/postgres/pgdata/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: stockstats_redis
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./docker-volumes/redis:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+```
+
+**2.2 Execute and Validate:**
+Run the following terminal command to start the engine:
+```bash
+docker-compose up -d
+```
+*Validation:* Open DBeaver or TablePlus. Connect to `localhost:5432` using `stockstats_admin` and the password from your `.env`. Verify the connection is successful.
+
+---
+
+## Step 3: The Python Quantitative Core
+We must isolate the mathematics engine dependencies flawlessly using a strict virtual environment.
+
+**3.1 Initialize the Environment:**
+```bash
+python3.11 -m venv venv
+source venv/bin/activate
+# Your terminal prompt should now show (venv)
+```
+
+**3.2 Create the Dependency Freeze:**
+Create `requirements.txt` in the root directory. Version locking is critical to prevent future package updates from breaking the Numba LLVM compiler.
+```txt
+# /stockstats/requirements.txt
+ccxt[async]==4.2.35      # Async Exchange Websockets
+numpy==1.26.4            # Array manipulation (Must match Numba requirements)
+pandas==2.2.1            # Time-series DataFrames
+numba==0.59.1            # LLVM Math Compiler for Hampel/GARCH
+asyncpg==0.29.0          # Async PostgreSQL Driver (Fast Inserts)
+redis==5.0.3             # Async Redis Pub/Sub
+python-dotenv==1.0.1     # Environment variable injection
+```
+
+**3.3 Install Dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+---
+**Sprint 1 Complete.** 
+The database chassis is running on `localhost`. The `venv` is strict and locked. The environment variables are safely hidden. 
+
+Proceed immediately to **[Sprint 2: The Ingestion Engine](02_sprint_2_ingestion_engine.md)**.
