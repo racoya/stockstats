@@ -124,7 +124,4 @@ pip install -r requirements.txt
 ```
 
 ---
-**Sprint 1 Complete.** 
-The database chassis is running on `localhost`. The `venv` is strict and locked. The environment variables are safely hidden. 
-
-Proceed immediately to **[Sprint 2: The Ingestion Engine](02_sprint_2_ingestion_engine.md)**.
+**⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️

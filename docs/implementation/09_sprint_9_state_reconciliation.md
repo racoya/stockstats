@@ -144,7 +144,4 @@ async def rescue_orphaned_order(client_uuid: str, symbol: str, pg_pool):
 ```
 
 ---
-**Sprint 9 Complete.** 
-The quantitative machine is now structurally defended against internet outages, exchange API instability, and AWS packet collisions. The Execution Ledger represents the mathematically undisputed truth.
-
-Proceed to **Sprint 10: Machine Learning Meta-Labeling** to implement non-linear XGBoost statistical filters over the raw signals.
+**⬅️ Previous:** [Sprint 8: The Next.js Command Terminal](08_sprint_8_nextjs_terminal.md) | **Next:** [Sprint 10: XGBoost Machine Learning](10_sprint_10_machine_learning.md) ➡️

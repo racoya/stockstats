@@ -124,7 +124,4 @@ export default function ChartWidget({ symbol }: { symbol: string }) {
 ```
 
 ---
-**Sprint 8 Complete.** 
-The proprietary Front-End architecture is now scaffolded. It utilizes Next.js App Router, intercepts unauthorized access via Edge Middleware, and fetches time-series data asynchronously.
-
-Proceed to **Sprint 9: State Reconciliation** to build the database verification loops required to prevent "Zombie Orders" on the exchange.
+**⬅️ Previous:** [Sprint 7: The Automated Execution Router](07_sprint_7_execution_router.md) | **Next:** [Sprint 9: State Machine Reconciliation](09_sprint_9_state_reconciliation.md) ➡️

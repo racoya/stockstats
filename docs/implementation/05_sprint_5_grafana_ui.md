@@ -126,9 +126,4 @@ async def force_alert(symbol: str, price: float, lower_band: float):
 ```
 
 ---
-**Sprint 5 Complete.** 
-The Phase 1 Minimum Viable Product (MVP) is officially physically complete. The math is running, the ticks are scrubbing, the SQL ledger is permanently archiving, Grafana is visualizing, and Discord is alerting the founder to execute manually.
-
-We are now actively trading Phase 1. 
-
-Proceed to **Sprint 6: Risk Matrices (The Copula)** to implement severe mathematical portfolio constraints *before* we begin coding the autonomous execution router.
+**⬅️ Previous:** [Sprint 4: Quantitative Logic Engine](04_sprint_4_quantitative_logic.md) | **Next:** [Sprint 6: Risk Matrices (Copula & Kelly)](06_sprint_6_risk_matrices.md) ➡️

@@ -149,7 +149,4 @@ async def process_garch_update(symbol: str, payload: str, redis_client):
 ```
 
 ---
-**Sprint 4 Complete.** 
-The Logic Engine is now entirely isolated from the Ingestion Engine. It listens to the Redis Pub/Sub stream, throttles itself to prevent CPU spikes, runs C-compiled GARCH volatility mathematics over the sterile arrays, and publishes the upper and lower dynamic bands back to the system.
-
-In **[Sprint 5: Grafana & Manual Trading](05_sprint_5_grafana_ui.md)**, we will visually plot these bands and set up the Webhooks required for the Phase 1 founder to physically execute the signals.
+**⬅️ Previous:** [Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md) | **Next:** [Sprint 5: Grafana Command Center](05_sprint_5_grafana_ui.md) ➡️

@@ -170,7 +170,4 @@ async def route_to_databases(tick: dict, pg_pool, redis_client):
 ```
 
 ---
-**Sprint 2 Complete.** 
-Raw ticks are streaming safely into both the SSD Vault and the RAM Cache. However, the data is still fundamentally "dirty." 
-
-Proceed to **[Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md)** to intercept exchange API glitches before they hit the ledger.
+**⬅️ Previous:** [Sprint 1: Core Infrastructure](01_sprint_1_infrastructure.md) | **Next:** [Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md) ➡️

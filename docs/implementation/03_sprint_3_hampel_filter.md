@@ -110,9 +110,4 @@ async def process_tick(trade: dict, pg_pool, redis_client):
 ```
 
 ---
-**Sprint 3 Complete.** 
-The data ingestion pipeline is now physically indestructible. We are pulling live CCXT WebSocket data, aggregating it by microsecond VWAP to prevent Matrix inversion errors, scrubbing it through C-compiled mathematics to prevent API glitches, archiving it permanently into TimescaleDB, and caching it volatilely in Redis.
-
-The Phase 1 Scrubber is fundamentally operational. 
-
-Proceed to **Sprint 4: The GARCH Volatility Engine** (Pending documentation).
+**⬅️ Previous:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) | **Next:** [Sprint 4: The Quantitative Logic Engine](04_sprint_4_quantitative_logic.md) ➡️
