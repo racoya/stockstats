@@ -87,15 +87,15 @@ The mathematical frameworks that generate Alpha are distinctly documented in the
 ### Core Signal Generation
 * [Model 01: GARCH(1,1) Volatility Indexing](docs/models/01_garch_volatility.md)
 * [Model 02: Cointegration & Statistical Arbitrage](docs/models/02_cointegration_arb.md)
-* [Model 03: Hidden Markov Macro Regimes](docs/models/03_hmm_macro_regimes.md)
-* [Model 07: Kalman Filter Dynamic Hedging](docs/models/07_kalman_filter_hedging.md)
-* [Model 08: Ornstein-Uhlenbeck (OU) Half-Life](docs/models/08_ou_process_half_life.md)
+* [Model 03: Hidden Markov Macro Regimes](docs/models/03_hmm_regime_detection.md)
+* [Model 07: Kalman Filter Dynamic Hedging](docs/models/07_kalman_filters.md)
+* [Model 08: Ornstein-Uhlenbeck (OU) Half-Life](docs/models/08_ornstein_uhlenbeck_halflife.md)
 
 ### Execution & Microstructure Defense
 * [Model 04: VWAP Distribution & Block Slicing](docs/models/04_vwap_liquidity.md)
 * [Model 13: Order State Machine & Reconciliation](docs/models/13_state_machine_reconciliation.md)
 * [Model 14: Data Scrubbing & Hampel Filters](docs/models/14_data_scrubbing_hampel.md)
-* [Model 15: L2 Order Book Imbalance (OBI) Veto](docs/models/15_order_book_imbalance.md)
+* [Model 15: L2 Order Book Imbalance (OBI) Veto](docs/models/15_orderbook_toxicity_obi.md)
 
 ### Risk & Capital Matrices
 * [Model 05: Expectancy & System Quality Number (SQN)](docs/models/05_expectancy_and_sqn.md)
