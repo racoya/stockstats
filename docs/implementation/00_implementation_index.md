@@ -12,6 +12,8 @@ These documents bridge the conceptual 8-Phase Roadmap into step-by-step physical
 ### 🖥️ Prerequisites
 *   **[Hardware & Infrastructure Sizing Matrix](00a_hardware_specifications.md)** 
     * Details the exact physical CPU, RAM, NVMe SSD, and Geo-Location (Latency) requirements for the local development MVP and the production AWS GPU clusters.
+*   **[Centralized Remote Development Environment](00b_remote_development_environment.md)**
+    * Step-by-step Ubuntu setup logic instructing the dev team on how to authenticate via Tailscale VPN, provision isolated SSH keys, securely share the TimescaleDB Docker array, and program natively using VS Code Remote.
 
 ---
 

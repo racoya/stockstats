@@ -65,4 +65,4 @@ Sprint 10 alters the hardware paradigm. Compiling fractional differenced feature
 *   **Cost Strategy:** We **do not** leave this machine running 24/7. We spin up the GPU instance strictly to train the model, save the `meta_model.json` file, and instantly terminate the expensive proxy. The resulting JSON file is only $\approx 2$ MB and is copied back to our cheap Tokyo Execution VPS, where standard CPUs can execute *predictions* in sub-milliseconds.
 
 ---
-**⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Sprint 1: Core Infrastructure](01_sprint_1_infrastructure.md) ➡️
+**⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Centralized Remote Dev Environment](00b_remote_development_environment.md) ➡️
