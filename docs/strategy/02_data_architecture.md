@@ -139,24 +139,3 @@ The system requires specific, institutional-grade external data inputs to calcul
 ### D. The HFT Race Condition (Microsecond Aggregation)
 *   **The Problem:** During a flash crash, Binance might instantly route 400 individual L1 trades within the exact same rolling millisecond. If the system attempts to push 400 identically timestamped ticks into the Redis GARCH array (Model 01), the Python linear algebra matrices (NumPy) will instantly crash due to mathematically impossible 0-time intervals ($dt=0$ causing infinite variance).
 *   **The Requirement:** The Ingestion Engine (Service 1) must mandate **Microsecond Tick Aggregation**. Before writing to Redis or TimescaleDB, if $N$ trades arrive with identical microsecond timestamps, they must be mathematically coalesced into a single Volume-Weighted Average Tick. This preserves the exact capital flow without structurally nuking the quantitative matrices.
-
-## 6. The Time Horizon Mandate (Granularity & History)
-A defining difference between a retail "trading bot" and STOCKSTATS' institutional-grade quantitative engine lies entirely in how data granularity and system history are handled.
-
-### A. The "Warm Up" Window (Startup History)
-**For Live Trading in Sprints 1-7:** The live engine does not require years of pre-downloaded historical data to begin fighting on day one.
-*   **The Problem:** Advanced models like the **[GARCH(1,1) Volatility Index](../models/01_garch_volatility.md)** and **[Cointegration](../models/02_cointegration_arb.md)** require a structural baseline to compare current prices against (e.g., a trailing array of the last 500 to 1,000 data points). If booted completely cold, the engine cannot calculate baseline variance.
-*   **The Solution:** The moment the Python engine boots, before opening the live WebSocket, it executes a single REST API call to download the trailing 500 periods of history directly into the **Redis Cache** array.
-*   **The Result:** The math engine instantly calculates the baseline variance and statistical spread. Operations transition seamlessly to live WebSocket streaming.
-*   **Deep History (Research Context):** As the live system runs, it permanently records every physical tick into the **TimescaleDB** ledger. Over months, this creates an enormous, proprietary dataset from which our researchers can execute Deep Learning backtests. Execution starts immediately; deep history is built continuously.
-
-### B. The Tick Mandate vs. Arbitrary Candles
-We absolutely, unconditionally **mandate the storage of live physical L1 Ticks**. 
-*   Standard Open-High-Low-Close (OHLCV) candles are mathematically banned from the core execution algorithms. A 15-minute candle is an arbitrary human construct that obscures and smooths out the aggressive micro-volatility occurring *inside* that timeframe.
-*   Our sophisticated models (like Kalman Filters and GARCH matrices) require raw, continuous tick-level vectors to instantly detect structural breaks in the market the microsecond they happen. Waiting 15 minutes for a candle to "close" to realize the market is crashing is structurally unacceptable and fundamentally destroys the $E(R)>0$ edge.
-
-### C. Array Sizing vs. Candle Sizing (Time Horizons)
-This architecture completely rejects the retail definitions of "Intra-day" versus "Swing" trading reliant on swapping out 5-minute candles for Daily candles. 
-*   **The Short-Term Trade (Micro-Arbitrage):** To execute a hyper-aggressive, high-frequency strategy, the Math Engine calculates Cointegration across a localized rolling array of the last `500 Ticks`. Trades open and close rapidly based entirely on localized tick velocity.
-*   **The Macro Trade (Swing):** To capture a longer-term macro trend, we do not switch to "Daily Candles". Instead, we expand the Math Engine's memory to process a rolling array of the last `100,000 Ticks`. 
-*   **Fractional Differencing ([Model 09](../models/09_fractional_differencing.md)):** For long-term multi-month mathematical stability within AI arrays, we apply Fractional Differencing calculus. This preserves the long-term compounding "memory" of an asset while retaining the strict temporal stationarity required for robust Machine Learning predictions.
