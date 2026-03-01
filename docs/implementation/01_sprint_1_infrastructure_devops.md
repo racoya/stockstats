@@ -465,4 +465,4 @@ The infrastructure is ready. Now the human engineer remotely boots the VS Code G
 **The Foundation is poured.** You are now physically ready to begin Sprint 2: Coding the Ingestion Engine.
 
 ---
-**⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️
+**⬅️ Previous:** [Implementation Index](00_implementation_index.md) | **Next:** [Sprint 2: The Ingestion Gateway](01b_sprint_1_ingestion_engine.md) ➡️

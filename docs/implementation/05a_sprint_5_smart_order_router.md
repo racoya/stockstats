@@ -133,4 +133,4 @@ This completes the full Phase 5 Automated Pipeline. The entire system now runs l
 4.  **Sprint 7:** The Execution Engine intercepts the $\$845$ command. It passes it to the `vwap_slicer()`, which breaks it into roughly 5 orders of $\$169$ each, applying cryptographic UUIDs via CCXT, and executing physical Maker Limit trades on Binance.
 
 ---
-**⬅️ Previous:** [Sprint 6: Risk Matrices (Copula & Kelly)](06_sprint_6_risk_matrices.md) | **Next:** [Sprint 8: The Next.js Command Terminal](08_sprint_8_nextjs_terminal.md) ➡️
+**⬅️ Previous:** [Sprint 6: Risk Matrices (Copula & Kelly)](04_sprint_4_risk_matrices.md) | **Next:** [Sprint 8: The Next.js Command Terminal](05b_sprint_5_nextjs_terminal.md) ➡️

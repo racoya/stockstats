@@ -133,4 +133,4 @@ When the Quantitative Logic Engine (Sprint 4) detects an anomaly, it must pass t
 4.  **Notifier:** Generates the Discord Webhook: `"GARCH Alert: BUY SOL/USDT. Risk Engine authorizes $180 allocation (Half-Kelly)."`
 
 ---
-**⬅️ Previous:** [Sprint 5: Grafana Command Center](05_sprint_5_grafana_ui.md) | **Next:** [Sprint 7: The Automated Execution Router](07_sprint_7_execution_router.md) ➡️
+**⬅️ Previous:** [Sprint 5: Grafana Command Center](03_sprint_3_grafana_ui.md) | **Next:** [Sprint 7: The Automated Execution Router](05a_sprint_5_smart_order_router.md) ➡️

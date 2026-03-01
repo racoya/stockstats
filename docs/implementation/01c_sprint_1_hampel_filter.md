@@ -110,4 +110,4 @@ async def process_tick(trade: dict, pg_pool, redis_client):
 ```
 
 ---
-**⬅️ Previous:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) | **Next:** [Sprint 4: The Quantitative Logic Engine](04_sprint_4_quantitative_logic.md) ➡️
+**⬅️ Previous:** [Sprint 2: The Ingestion Gateway](01b_sprint_1_ingestion_engine.md) | **Next:** [Sprint 4: The Quantitative Logic Engine](02_sprint_2_quantitative_logic_engine.md) ➡️

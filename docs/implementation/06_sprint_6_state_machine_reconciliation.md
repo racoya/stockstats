@@ -162,4 +162,4 @@ async def rescue_orphaned_order(client_uuid: str, symbol: str, pg_pool):
 ```
 
 ---
-**⬅️ Previous:** [Sprint 8: The Next.js Command Terminal](08_sprint_8_nextjs_terminal.md) | **Next:** [Sprint 10: XGBoost Machine Learning](10_sprint_10_machine_learning.md) ➡️
+**⬅️ Previous:** [Sprint 8: The Next.js Command Terminal](05b_sprint_5_nextjs_terminal.md) | **Next:** [Sprint 10: XGBoost Machine Learning](08_sprint_8_xgboost_machine_learning.md) ➡️

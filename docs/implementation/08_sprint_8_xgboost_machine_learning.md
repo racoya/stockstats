@@ -163,4 +163,4 @@ async def execute_limit_order(symbol: str, side: str, amount: float, price: floa
 ```
 
 ---
-**⬅️ Previous:** [Sprint 9: State Machine Reconciliation](09_sprint_9_state_reconciliation.md) | **Next:** [End of Implementation Map]
+**⬅️ Previous:** [Sprint 9: State Machine Reconciliation](06_sprint_6_state_machine_reconciliation.md) | **Next:** [End of Implementation Map]

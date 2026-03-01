@@ -9,63 +9,55 @@ These documents bridge the conceptual 8-Phase Roadmap into step-by-step physical
 
 ## 🏗️ Sprint Execution Plans
 
-### Phase 1 & 2: Infrastructure & Data Ingestion (The Scrubber)
-Focus purely on standing up the bare metal and ensuring the data stream is mathematically sterile before we attempt to write any Quantitative Logic.
+The execution phase is strictly divided into **9 Sprints**. These physical blueprints map 1-to-1 with the master tickets defined in `docs/strategy/12_execution_sprints_and_tickets.md`.
 
-1. **[Sprint 1: Infrastructure & DevOps](01_sprint_1_infrastructure_devops.md)**
-   * Defining Hardware, Environment Isolation (Dev/Staging/Prod), and Trunk-Based Git workflows.
-   * Establishing the VS Code Remote Development environment for the distributed team.
-   * Deploying the dual-database architecture and the strictly locked Python virtual environment.
+### Phase 1 & 2: Testing the Scrubber & Proving the Edge
+Focus purely on standing up the bare metal, ensuring the data stream is mathematically sterile, and proving $E(R)>0$ before attempting any User Interfaces.
 
-2. **[Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md)**
-   * Building the asynchronous `ccxt.pro` WebSocket listeners.
-   * Implementing the Microsecond Tick Aggregation VWAP protocol.
-   * Routing data to TimescaleDB and Redis simultaneously.
+1. **[Sprint 1: The Ingestion Scrubber & MVE](01_sprint_1_infrastructure_devops.md)**
+   * (Included: [Ingestion Engine](01b_sprint_1_ingestion_engine.md) & [Hampel Filter](01c_sprint_1_hampel_filter.md))
+   * Deploying TimescaleDB/Redis on the Ubuntu Basement Server.
+   * Executing immutable SQL schemas and CCXT WebSocket loops.
+   * Compiling Numba LLVM outlier scrubbers before database insertion.
 
-3. **[Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md)**
-   * Building the Numba JIT-compiled Median Absolute Deviation (MAD) mathematical filter to intercept rogue exchange ticks in real-time.
+2. **[Sprint 2: The Quantitative Logic Engine](02_sprint_2_quantitative_logic_engine.md)**
+   * Implementing GARCH(1,1), Cointegration Arbitrage, and Hidden Markov Models.
+   * Executing the Point-in-Time historical Pandas backtester to prove the statistical edge.
 
----
+### Phase 3 & 4: Manual Trading & Defense Structures
+Deploy initial capital manually to capture Machine Learning Ground Truth labels, followed immediately by defensive tail-risk matrices.
 
-### Phase 3 & 4: The Quantitative Core & Manual Command Center
-Calculate the mathematical edge and build the initial UI required for the founder to actively trade it manually to gather Ground Truth data.
+3. **[Sprint 3: Grafana Command Center & Manual Trading](03_sprint_3_grafana_ui.md)**
+   * Stand up local Grafana to visualize TimescaleDB tick matrices.
+   * Manually execute the first live trades via Slack Webhooks.
 
-4. **[Sprint 4: The Quantitative Logic Engine](04_sprint_4_quantitative_logic.md)**
-   * Implementing the Numba compiled GARCH(1,1) Volatility variance lines.
-   * Operating an isolated Redis Pub/Sub polling loop.
+4. **[Sprint 4: Risk Matrices & Capital Sizing](04_sprint_4_risk_matrices.md)**
+   * Constructing the Clayton Copula Lower-Tail crash detection matrices.
+   * Implementing Fractional Kelly ($f^*$) optimization and the VaR Kill Switch.
 
-5. **[Sprint 5: Grafana Command Center & Manual Trading](05_sprint_5_grafana_ui.md)**
-   * Deploying the Grafana Docker node and PostgreSQL optimizations.
-   * Building the SQL view for pricing and GARCH bounds.
-   * Configuring Discord Python webhooks for manual execution alerts.
+### Phase 5 & 6: Automation & Ledger Reconciliation 
+Transitioning away from the human operator toward autonomous algorithmic execution.
 
----
+5. **[Sprint 5: The Smart Order Router / Next.js Terminal](05a_sprint_5_smart_order_router.md)**
+   * (Included: [Next.js Terminal](05b_sprint_5_nextjs_terminal.md))
+   * Architecting the Next.js Operations UI and Role-Based Access controls.
+   * Programming the VWAP micro-order slicer and CCXT cryptography router.
 
-### Phase 5 & 6: Risk Matrices & Autonomous Routing
-Establishing aggressive mathematical defense structures before unleashing an automated CCXT router to fire cryptographic payloads to the exchange.
+6. **[Sprint 6: Systemic Ledger Reconciliation](06_sprint_6_state_machine_reconciliation.md)**
+   * Injecting deterministic Client UUID identifiers across DB states.
+   * Programming the HTTP 504 Timeout rescue interrogator.
 
-6. **[Sprint 6: The Copula & Kelly Risk Matrices](06_sprint_6_risk_matrices.md)**
-   * Programming the Clayton Copula Lower-Tail Veto.
-   * Building the Fractional Kelly organic position sizing functions.
+### Phase 7, 8, & 9: Full Autonomy, AI, and Cloud Migration
+The final stages of architectural dominance. Removing the UI friction, injecting Machine Learning, and moving to the cloud.
 
-7. **[Sprint 7: The Automated Execution Router](07_sprint_7_execution_router.md)**
-   * Securing CCXT asynchronous maker limit structures.
-   * Programming the VWAP order slicer to hide from HFTs.
+7. **Sprint 7: Full Autonomy (Local Basement Server)** 
+   * *(Documentation Pending Execution)*
+   * Decoupling specific microservices via Redis Pub/Sub events.
+   * Transitioning to 24/7 headless Prod containers.
 
----
+8. **[Sprint 8: XGBoost Machine Learning Overlays](08_sprint_8_xgboost_machine_learning.md)**
+   * Training Gradient Boosting trees to act as a mathematical Veto against False Positive linear signals.
 
-### Phase 7 & 8: Institutional Front-End & Machine Learning
-Upgrading the local MVP into a highly accessible React operations terminal with state-of-the-art Xenon Artificial Intelligence overlays.
-
-8. **[Sprint 8: The Next.js Command Terminal](08_sprint_8_nextjs_terminal.md)**
-   * Architecting Edge Middleware for strict Role-Based Access Control (RBAC).
-   * Polling massive Redis time-series arrays via SWR.
-
-9. **[Sprint 9: State Machine Reconciliation](09_sprint_9_state_reconciliation.md)**
-   * Generating deterministic Client UUID injection payloads.
-   * Programming the HTTP 504 Rescue Interrogator to prevent "Zombie Orders."
-
-10. **[Sprint 10: XGBoost Machine Learning](10_sprint_10_machine_learning.md)**
-    * Feature engineering fractional differenced historical states.
-    * Extracting historical manual PnL for XGBoost Ground Truth.
-    * Injecting the live AI probability Veto into the Smart Order Router.
+9. **Sprint 9: Cloud VPC Migration (AWS Optimization)**
+   * *(Documentation Pending Execution: Target AWS Tokyo AP-NORTHEAST-1)*
+   * Sub-5ms latency cutover after proven Basement Server profitability.

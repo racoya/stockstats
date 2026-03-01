@@ -149,4 +149,4 @@ async def process_garch_update(symbol: str, payload: str, redis_client):
 ```
 
 ---
-**⬅️ Previous:** [Sprint 3: The Hampel Scrubber](03_sprint_3_hampel_filter.md) | **Next:** [Sprint 5: Grafana Command Center](05_sprint_5_grafana_ui.md) ➡️
+**⬅️ Previous:** [Sprint 3: The Hampel Scrubber](01c_sprint_1_hampel_filter.md) | **Next:** [Sprint 5: Grafana Command Center](03_sprint_3_grafana_ui.md) ➡️

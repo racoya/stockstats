@@ -124,4 +124,4 @@ export default function ChartWidget({ symbol }: { symbol: string }) {
 ```
 
 ---
-**⬅️ Previous:** [Sprint 7: The Automated Execution Router](07_sprint_7_execution_router.md) | **Next:** [Sprint 9: State Machine Reconciliation](09_sprint_9_state_reconciliation.md) ➡️
+**⬅️ Previous:** [Sprint 7: The Automated Execution Router](05a_sprint_5_smart_order_router.md) | **Next:** [Sprint 9: State Machine Reconciliation](06_sprint_6_state_machine_reconciliation.md) ➡️

@@ -126,4 +126,4 @@ async def force_alert(symbol: str, price: float, lower_band: float):
 ```
 
 ---
-**⬅️ Previous:** [Sprint 4: Quantitative Logic Engine](04_sprint_4_quantitative_logic.md) | **Next:** [Sprint 6: Risk Matrices (Copula & Kelly)](06_sprint_6_risk_matrices.md) ➡️
+**⬅️ Previous:** [Sprint 4: Quantitative Logic Engine](02_sprint_2_quantitative_logic_engine.md) | **Next:** [Sprint 6: Risk Matrices (Copula & Kelly)](04_sprint_4_risk_matrices.md) ➡️
