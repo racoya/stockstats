@@ -141,4 +141,4 @@ They do not need SSH terminal access.
 4.  The dashboards load seamlessly over the secure Intranet.
 
 ---
-**⬅️ Previous:** [Hardware Sizing Matrix](00a_hardware_specifications.md) | **Next:** [Sprint 1: Core Infrastructure](01_sprint_1_infrastructure.md) ➡️
+**⬅️ Previous:** [Hardware Sizing Matrix](00a_hardware_specifications.md) | **Next:** [Antigravity AI Integration](00c_antigravity_ai_integration.md) ➡️

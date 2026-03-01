@@ -149,4 +149,4 @@ pip install -r requirements.txt
 ```
 
 ---
-**⬅️ Previous:** [Centralized Remote Dev Environment](00b_remote_development_environment.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️
+**⬅️ Previous:** [Environment Management & CI/CD](00e_environment_management.md) | **Next:** [Sprint 2: The Ingestion Gateway](02_sprint_2_ingestion_engine.md) ➡️
