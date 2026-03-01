@@ -15,7 +15,7 @@ This document consolidates six distinct architectural pillars:
 
 ## Pillar 1: Hardware & Infrastructure Sizing Matrix
 
-As we transition from theory to execution, the physical machines running the STOCKSTATS codebase must scale alongside the software phases. 
+As we transition from theory to execution, the physical machines running the STOCKSTATS codebase must scale alongside the software phases. The foundational requirement across all machines is **Ubuntu Server 24.04 LTS**. We do not deploy production code on Windows or macOS.
 
 ### 1.1 Sprints 1-5: The Phase 1 MVP (Centralized Basement Server)
 We prioritize cost and iteration speed. Instead of developers working in silos on laptops, we utilize a **Centralized Basement Server** (DevBox & Data Hub) from Day 1.
@@ -24,70 +24,111 @@ We prioritize cost and iteration speed. Instead of developers working in silos o
 *   **VS Code Remote Development:** Developers write code directly on the server's compute cycles via SSH.
 
 **Minimum Hardware Specifications:**
-*   **CPU:** 8+ Cores (e.g., Intel i7/i9, AMD Ryzen 7/9). Simulates execution loops and handles simultaneous SSH sessions.
-*   **RAM:** 32-64 GB. TimescaleDB and Pandas matrices consume massive memory.
-*   **Storage:** 1 TB NVMe SSD. Mandatory to prevent TimescaleDB I/O queuing.
+*   **CPU:** 8+ Cores (e.g., Intel i7/i9, AMD Ryzen 7/9). Simulates execution loops and handles simultaneous SSH sessions without thread blocking.
+*   **RAM:** 32-64 GB (ECC Preferred). TimescaleDB and Pandas matrices consume massive memory. Out-Of-Memory (OOM) kills during a live trade are catastrophic.
+*   **Storage:** 1 TB NVMe SSD (PCIe Gen 4.0+). Mechanical HDDs or SATA SSDs are strictly prohibited. TimescaleDB continuous aggregations require $> 5,000$ IOPS to prevent I/O queuing during volatile market events.
 *   **Network:** Stable 500+ Mbps Fiber connection. 
 
 ### 1.2 Sprints 6-9: Autonomous Execution (Production Deployment)
 For the foreseeable future, **Production will run alongside Development on the Basement Server**. A strong local server can handle both workloads brilliantly, provided they are heavily guarded by strict Docker boundaries.
 
 *   **Machine Type:** The existing Centralized Basement Server.
-*   **The Docker Mandate:** Production logic does *not* execute natively. It runs inside a locked Linux Docker Container (`stockstats-prod-engine`). If the dev team crashes the system with a memory leak during testing, Docker limits guarantee the Production Engine is unaffected.
-*   **Future Note on Latency Arbitrage:** In Phase 8, when sub-millisecond latency becomes a limiting factor, we can migrate the `stockstats-prod-engine` Docker container to an AWS VPS in Tokyo (`ap-northeast-1`). Until then, domestic network latency is acceptable for our macroscopic $E(R)>0$ edge.
+*   **The Docker Mandate:** Production logic does *not* execute natively. It runs inside a locked Linux Docker Container (`stockstats-prod-engine`). If the dev team crashes the system with a memory leak during testing, Docker `cgroup` limits guarantee the Production Engine remains unaffected.
+*   **Future Note on Latency Arbitrage:** In Phase 9, when sub-millisecond latency becomes a limiting factor, we can migrate the `stockstats-prod-engine` Docker container to an AWS ECS cluster in Tokyo (`ap-northeast-1`). Until then, domestic network latency is acceptable for our macroscopic $E(R)>0$ edge.
 
 ### 1.3 Sprint 10: Machine Learning (GPU Acceleration)
-Compiling XGBoost gradient trees across 100 boosting rounds is slow on a standard CPU. However, if the Basement Server has a high-end dedicated GPU (e.g., NVIDIA RTX 3090 / 4090), we do not need AWS Cloud.
+Compiling XGBoost gradient trees across 100 boosting rounds is computationally massive for standard CPUs. However, if the Basement Server has a high-end dedicated GPU (e.g., NVIDIA RTX 3090 / 4090), we do not need AWS Cloud.
 
-*   **GPU:** The local NVIDIA card inside the Basement Server.
+*   **GPU:** The local NVIDIA card inside the Basement Server running CUDA toolkits.
 *   **Cost Strategy:** Zero marginal cost. We train the trees locally, save the `meta_model.json`, and pass it locally to the Production Container.
 
 ---
 
 ## Pillar 2: Environment Management & CI/CD
 
-An algorithmic trading machine with direct API access to retirement accounts cannot be tested "live." We adhere to the **12-Factor App Methodology**, strictly separating Configuration (`.env`) from Code.
+An algorithmic trading machine with direct API access to live retirement accounts cannot be tested "in production." We rigorously adhere to the **12-Factor App Methodology**, strictly separating Configuration (secrets) from Code.
 
 ### 2.1 The Three Isolated Environments (Single Bare-Metal)
-Because all three stacks live on the identical Basement Server, we achieve isolation entirely through **Docker Networking** and **Port Mapping**.
+Because all three stacks live on the identical Basement Server initially, we achieve isolation entirely through **Docker Networking** and **Port Mapping**. They must never share a database instance.
 
 1.  **🟢 Development (DEV):** 
     *   **Architecture:** Runs natively via VS Code remote (`python3 ingest.py`). Connects to `localhost:5432` (Dev Timescale).
     *   **Keys:** Binance Testnet or Read-Only Mainnet keys.
-    *   **Execution:** Blocked. `STOCKSTATS_EXECUTION_MODE=SHADOW`
+    *   **Execution:** Mathematically blocked. `STOCKSTATS_EXECUTION_MODE=SHADOW`
 2.  **🟡 Staging / Paper Trading (UAT):** 
-    *   **Architecture:** Runs inside a Docker Container (`stockstats-staging`). Connects to `localhost:5433` (Staging Timescale).
-    *   **Goal:** Forward-testing over 30 days. Uses Read-Only Mainnet Keys. Trades route exclusively to the local SQL `shadow_execution_ledger` to simulate slippage without risking capital.
+    *   **Architecture:** Runs inside a Docker Container (`stockstats-staging`). Connects to an isolated `localhost:5433` (Staging Timescale).
+    *   **Goal:** Forward-testing over 30 days. Uses Read-Only Mainnet Keys. Trades route exclusively to the local SQL `shadow_execution_ledger` to statistically verify slippage without risking physical capital.
 3.  **🔴 Production (PROD):** 
-    *   **Architecture:** Runs completely headless inside an isolated Docker Container (`stockstats-prod`). Connects to an incredibly secure `localhost:5434` (Prod Timescale bindings limited to the Docker Bridge).
-    *   **Keys:** Binance Mainnet TRADING Keys (Withdrawals disabled at exchange).
+    *   **Architecture:** Runs completely headless inside an isolated Docker Container (`stockstats-prod`). Connects to an incredibly secure `localhost:5434` (Prod Timescale bindings limited exclusively to the Docker Bridge).
+    *   **Keys:** Binance Mainnet TRADING Keys (Withdrawals physically disabled at exchange level).
+    *   **Execution:** Fully Live. `STOCKSTATS_EXECUTION_MODE=LIVE`
 
-### 2.2 GitHub Actions / Local Scripts (CI/CD)
-*   **CI (Testing):** Before merging to `main`, GitHub Actions runs `flake8`, `black`, and `pytest`. If mathematical validation fails (e.g., Hampel filter returns wrong MAD), GitHub physically blocks the "Merge" button.
-*   **CD (Deployment):** Merging a PR into `main` signals the Basement Server to `git pull`, rebuild the Production Docker image (`docker build -t stockstats-prod .`), and hot-swap the internal container.
+### 2.2 Continuous Integration & Deployment (CI/CD) Pipeline
+We deploy via an immutable, automated pipeline. Humans do not manually SSH into the server to `git pull` the Production container.
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer MacBook
+    participant GH as GitHub (Origin)
+    participant CI as GitHub Actions
+    participant Prod as Basement Server
+
+    Dev->>GH: 1. Push Feature Branch
+    Dev->>GH: 2. Open Pull Request (PR)
+    GH->>CI: 3. Trigger CI Pipeline
+    activate CI
+    CI-->>CI: Run Flake8 (Syntax Linting)
+    CI-->>CI: Run PyTest (Mathematical Validation)
+    CI-->>GH: 4. Pass / Fail Status
+    deactivate CI
+    GH->>GH: 5. Peer Review & Squash Merge
+    GH->>Prod: 6. Webhook Trigger CD Script
+    activate Prod
+    Prod-->>Prod: git pull origin main
+    Prod-->>Prod: docker-compose build stockstats-prod
+    Prod-->>Prod: docker-compose up -d --no-deps stockstats-prod
+    deactivate Prod
+```
+
+*   **CI (Testing):** Before merging to `main`, GitHub Actions runs `flake8`, `black`, and `pytest`. If mathematical validation fails (e.g., the Hampel filter returns the wrong MAD on a mock array), GitHub physically blocks the "Merge" button.
+*   **CD (Deployment):** Merging an approved PR into `main` fires a secure webhook to the Basement Server, triggering a bash script to pull the code, rebuild the Production Docker image, and hot-swap the internal container without dropping active websocket connections.
 
 ---
 
-## Pillar 3: Remote Development Environment
+## Pillar 3: Remote Development Environment (Zero-Trust)
 
-This section provides the implementation steps for configuring the Basement Server for a distributed team.
+This section mandates the rigorous cryptographic protocols for remote team access to the Basement Server. We operate under a Zero-Trust architecture.
 
-### 3.1 Network & User Setup
-1.  **Tailscale VPN:** Install Tailscale on the Ubuntu Server (`sudo tailscale up`) and all developer laptops to create a zero-config encrypted peer-to-peer intranet. No router port-forwarding required.
-2.  **User Provisioning:** No `root` access. Create isolated Linux profiles: 
+### 3.1 Network & User Isolation Strategy
+The Basement Server has absolutely **no open public ports**. All ingress is blocked at the firewall level.
+
+```mermaid
+graph LR
+    subgraph Tailscale Encrypted Intranet
+        Mac[Developer MacBook<br/>Tailscale IP: 100.x.y.z]
+        Server[Basement Server<br/>Tailscale IP: 100.a.b.c]
+    end
+    Internet((Public Internet))
+    
+    Mac -- WireGuard Encrypted Tunnel --> Server
+    Internet -.-x|Blocked by UFW Firewall| Server
+```
+
+1.  **Tailscale VPN:** Install Tailscale on the Ubuntu Server (`sudo tailscale up`) and all developer hardware.
+2.  **User Provisioning:** The physical `root` account is permanently disabled for SSH. Create isolated Linux profiles dynamically: 
     ```bash
     sudo adduser dev_alice
     sudo usermod -aG sudo dev_alice
     sudo usermod -aG docker dev_alice
     ```
-3.  **SSH Key Injection:** The Admin pastes the developer's `id_ed25519.pub` into `/home/dev_alice/.ssh/authorized_keys`.
+3.  **Cryptographic SSH Keys:** Password authentication is strictly disabled (`PasswordAuthentication no` in `sshd_config`). Developers must generate modern Elliptic Curve keys (`ssh-keygen -t ed25519`). Legacy RSA keys are prohibited. The Admin injects the `id_ed25519.pub` into `/home/dev_alice/.ssh/authorized_keys`.
 
 ### 3.2 The VS Code Remote-SSH Workflow
-Developers code locally on Macs, executing physically on the Basement Server.
-1.  Install **Remote - SSH** in Visual Studio Code.
-2.  Add the Host to `~/.ssh/config` using the Tailscale IP and the specific `User dev_alice`.
-3.  Connect to Host -> Open Folder `/opt/stockstats/` (Shared repository namespace with `775` permissions).
-4.  Non-developer Traders simply open Chrome and navigate to `http://<tailscale-ip>:3000` to view live Grafana panels.
+Remote developers compile Python directly on the Basement Server's CPU, avoiding local MacBook dependency bloat.
+1.  Install the **Remote - SSH** extension in Visual Studio Code.
+2.  Add the Host to `~/.ssh/config` using the Tailscale 100.X IP and the specific `User dev_alice`.
+3.  Connect to Host -> Open Folder `/opt/stockstats/`. (The repository namespace rigidly employs `chmod 775` group permissions allowing multi-developer collaboration).
+4.  Non-developer Traders simply open Chrome and navigate to `http://<tailscale-ip>:3000` over the VPN to view live Grafana surveillance panels securely.
 
 ---
 
@@ -146,13 +187,14 @@ Direct commits to the `main` branch are strongly prohibited. All code enters `ma
 
 ---
 
-## Pillar 5: Antigravity AI Integration
+## Pillar 5: AI-Augmented Quantitative Engineering
 
-The system is cooperatively engineered between human experts and the Antigravity AI Agent. To prevent "hallucinated" architectures:
+We treat the AI (Antigravity/Claude) not as a subservient code-generator, but as a Lead Quantitative Architect. However, Large Language Models (LLMs) hallucinate if deprived of strict context parameters. We enforce the following AI collaboration protocols:
 
-1.  **Context Injection:** Tell the AI explicitly which docs to read before asking it to code. *"Read `02_sprint_2_ingestion_engine.md` and execute Step 1."*
-2.  **The View-File Loop:** Ask the AI to read the current state of a `.py` file before modifying it.
-3.  **Planning vs. Execution:** Explicitly dictate the mode. If the AI is writing `.md` blueprints, do not prompt it to deploy a Docker container in the same command. Let the AI state its mode.
+1.  **Contextual Anchor Injection:** Never ask the AI to "write a feature" blindly. You must forcefully anchor its context to the Master Strategy. *(Correct Prompt: "Read `docs/strategy/02_cointegration_arb.md` and implement the Johansen matrix in `math_core.py`.")*
+2.  **The View-Before-Edit Mandate:** Ensure the AI invokes the `view_file` tool to read the current systemic state of the target file before running a codebase-altering `multi_replace`. Blind edits cause catastrophic indentation failures.
+3.  **Strict Mode Separation (Planning vs Execution):** We explicitly separate AI execution boundaries. When the AI is in `PLANNING` mode, it is strictly forbidden from editing physical python files. Only once a technical `implementation_plan.md` artifact is approved by the human operator does the agent shift to `EXECUTION` mode to safely manipulate code.
+4.  **Mathematical TDD Integration:** Before the AI writes the strategy function, mandate it to write the `pytest` mathematical proof array first. (e.g., "Write a pytest verifying the Hampel Filter returns a MAD of $X$ given array $Y$, then establish the core function.")
 
 ---
 
@@ -224,7 +266,7 @@ docker-volumes/
 ```
 
 ### Step 6.2: The Dockerized Storage Layer
-Create `docker-compose.yml` to isolate the dual-database structure:
+Create `docker-compose.yml` to structurally isolate the dual-database architecture. We explicitly enforce `deploy.resources` to prevent a runaway query from triggering a system-wide OS kernel panic (Out-of-Memory Kill).
 
 ```yaml
 version: '3.8'
@@ -240,6 +282,15 @@ services:
       - ./docker-volumes/timescaledb:/home/postgres/pgdata/data
     ports:
       - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 16G # Prevents DB from starving the Python Engine
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     restart: unless-stopped
 
   redis:
@@ -250,6 +301,10 @@ services:
       - ./docker-volumes/redis:/data
     ports:
       - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 4G # Redis memory bound for OBI caching
     restart: unless-stopped
 ```
 Execute logic: `docker-compose up -d`
