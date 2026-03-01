@@ -5,8 +5,8 @@ STOCKSTATS is a proprietary, internally developed algorithmic trading platform b
 
 We are not building a generic "crypto trading bot." We are building a mathematically rigorous Statistical Arbitrage and Volatility Engine. Every physical trade must mathematically prove a Positive Expected Value ($E(R) > 0$) while surviving predatory institutional High-Frequency Trading (HFT) environments through structural defenses like VWAP micro-slicing and Copula tail-risk algorithms.
 
-## The Pragmatic Roadmap (8 Phases)
-Because we are trading our own personal capital, we unconditionally recognize that autonomous trading carries extreme systemic risk. We reject monolithic "Big Bang" deployment. The system is constructed defensively in [8 distinct sequential phases](docs/strategy/00_roadmap.md):
+## The Pragmatic Roadmap (9 Phases)
+Because we are trading our own personal capital, we unconditionally recognize that autonomous trading carries extreme systemic risk. We reject monolithic "Big Bang" deployment. The system is constructed defensively in [9 distinct sequential phases](docs/strategy/00_roadmap.md):
 
 1. **The Ingestion Scrubber:** Point-in-time data gathering and MAD Hampel mathematical filtering.
 2. **The Logic Engine ($E(R) > 0$):** GARCH and Cointegration signaling & Shadow Mode forward-testing.
@@ -14,8 +14,49 @@ Because we are trading our own personal capital, we unconditionally recognize th
 4. **Risk Matrices & Sizing:** Copula crash detection and Fractional Kelly trade sizing.
 5. **The Smart Order Router (SOR):** VWAP slicers and OBI Toxicity vetos.
 6. **Systemic Reconciliation:** The UUID State Machine and HTTP 504 Timeout Rescue protocol.
-7. **Full Autonomy:** Severing the UI and isolating the core engine.
-8. **Machine Learning Overlays:** XGBoost Meta-Labeling to veto mathematical False Positives.
+7. **Full Autonomy (Basement Server):** Severing the UI and physically isolating the core engine.
+8. **Machine Learning Overlays:** XGBoost Meta-Labeling to mathematically veto False Positives.
+9. **Cloud VPC Migration (AWS):** Shifting the proven architecture to Tokyo for sub-millisecond latency.
+
+---
+
+## ⚡ The Definitive Technology Stack
+STOCKSTATS entirely rejects Enterprise Java and legacy generic web stacks in favor of high-velocity Quantitative Mathematics:
+*   **The Math Engine:** Python 3.11+ natively compiled to C-level machine code via **Numba (LLVM)**.
+*   **The Command UI:** Next.js (React/TypeScript) utilizing Zustand state and TradingView WebGL arrays.
+*   **The Quantitative Ledger:** TimescaleDB (Relational PostgreSQL) strictly isolated via Docker allocations.
+*   **The High-Frequency Cache:** Redis (Pub/Sub Event Bus and L2 Order Book depth arrays).
+*   **DevOps Architecture:** Strictly Dockerized Microservices. Zero "Standard VM" installations.
+
+```mermaid
+graph TD
+    classDef prod fill:#ffebee,stroke:#f44336,stroke-width:2px;
+    classDef dev fill:#e3f2fd,stroke:#2196f3,stroke-width:2px;
+    
+    subgraph Architecture ["STOCKSTATS Quantitative Engine Topography"]
+        
+        GW[Data Ingestion Gateway<br/>Python + CCXT]:::dev
+        DB[(TimescaleDB Layer)]:::prod
+        CACHE[(Redis Sub-ms Cache)]:::dev
+        
+        LOGIC[Quantitative Logic Engine<br/>Numba JIT Math Arrays]:::dev
+        SOR[Smart Order Router<br/>Fractional Kelly + VWAP]:::prod
+        
+        GW -->|Pipes L1 Ticks| DB
+        GW -->|Pipes L2 Depth (OBI)| CACHE
+        DB -->|Historical Scans| LOGIC
+        CACHE -->|Real-time Depth| LOGIC
+        LOGIC -->|Calculates E_R > 0| SOR
+        
+        subgraph MachineLearning ["Phase 8 Systemic Defense"]
+            AI[XGBoost ML Classifier]:::prod
+        end
+        LOGIC -.->|Feature Array| AI
+        AI -.->|Classification Veto| SOR
+        
+        SOR -->|Signs ECDSA Payload| EXC((Cryptocurrency Exchange))
+    end
+```
 
 ---
 
